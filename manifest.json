@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Owl Project",
-    "version": "1.0",
+    "name": "Asher",
+    "version": "4.0",
     "description": "Simple Chrome extension with content script",
     "author": "Lordskey",
   
@@ -23,7 +23,8 @@
     "content_scripts": [
       {
         "matches": [
-          "https://www.amazon.com/*",
+          "https://*/*",
+          "http://*/*",
           "http://localhost/*",
           "http://127.0.0.1/*"
         ],
