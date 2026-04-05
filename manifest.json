@@ -1,0 +1,34 @@
+{
+    "manifest_version": 3,
+    "name": "Owl Project",
+    "version": "1.0",
+    "description": "Simple Chrome extension with content script",
+    "author": "Lordskey",
+  
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": "assets/icon.png"
+    },
+  
+    "background": {
+      "service_worker": "background.js"
+    },
+  
+    "permissions": [
+      "storage",
+      "activeTab",
+      "scripting"
+    ],
+  
+    "content_scripts": [
+      {
+        "matches": [
+          "https://www.amazon.com/*",
+          "http://localhost/*",
+          "http://127.0.0.1/*"
+        ],
+        "js":   ["/assets/libs/q.js","content.js"],
+        "css":  ["/assets/owl_style.css"]
+      }
+    ]
+  }

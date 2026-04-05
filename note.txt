@@ -1,0 +1,86 @@
+kung mag create ka ug chrome extension mas nindut kung naa jquery sa imong
+file para dali ra pag manipulate sa imong code. 
+
+
+
+
+
+        "matches": [
+          "https://*/*",
+          "http://*/*",
+          "http://localhost/*",
+          "http://127.0.0.1/*"
+        ],
+
+
+
+
+
+
+
+
+
+
+
+
+// lisener
+function observeElement() {
+  const target = document.body;
+
+  const observer = new MutationObserver(() => {
+    const el = document.querySelector("#h10-product-score");
+
+    if (el && el.innerText.trim() !== "") {
+      alert("Data displayed: " + el.innerText);
+      observer.disconnect(); // stop observing
+    }
+  });
+
+  observer.observe(target, {
+    childList: true,
+    subtree: true
+  });
+}
+
+// call function
+observeElement();
+
+
+
+
+
+
+
+
+
+
+/*
+const interval = setInterval(() => {
+    const btn = $("#btnsample");
+  
+    if (btn.length) {
+  
+      btn.off("click"); // remove old
+      btn.on("click", function(e) {
+        e.preventDefault();
+        alert("jQuery control na 🔥");
+      });
+  
+      clearInterval(interval);
+    }
+  }, 500);
+
+
+
+// data-state="closed"
+$(document).on("click", "[data-state=closed]", function(e){
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  alert("Fully controlled na 🔥");
+
+  return false;
+});
+
+
+*/   
