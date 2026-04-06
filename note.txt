@@ -84,3 +84,266 @@ $(document).on("click", "[data-state=closed]", function(e){
 
 
 */   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article class="FtjPK r0etU ouMsp"><div class="undefined"><header class="DEkbl rtjhW"><a aria-label="Permalink" class="mYcfU YgsXo" rel="bookmark" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can"></a><div class="cPL5a Afu4V QCWsQ"><div class="m2Bdx pLL0g cJ1ik"><div aria-label="Posted by surqrised – March 20th, 11:00 PM" class="l4Qpd"><div class="y8wKa"><figure aria-label="Avatar" class="NmEJh wCmYf WHBEq pPM64" style="height: 40px; width: 40px;"><div class="DPB5d"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a rel="noopener" target="_blank" href="/surqrised" class="BSUG4" role="link" tabindex="0"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="S8Dii RoN4R tPU70" decoding="sync" loading="eager" sizes="40px" srcset="https://64.media.tumblr.com/avatar_bd60c94e9d57_64.pnj 64w, https://64.media.tumblr.com/avatar_bd60c94e9d57_96.pnj 96w, https://64.media.tumblr.com/avatar_bd60c94e9d57_128.pnj 128w, https://64.media.tumblr.com/avatar_bd60c94e9d57_512.pnj 512w" style="height: 40px; width: 40px;"></div></a></span></span></div><div class="iIlsP"></div></figure></div><div class="cPL5a tmC7Y QCWsQ zmkgk"><div class="W0XIT"><div class="d7ZC6"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a rel="author" target="_blank" href="/surqrised" class="BSUG4" role="link" tabindex="0">surqrised</a></span></span></div><div class="beV_K"></div></div><div class="x66yu"><div class="NB_7e"><div class="Fuxs_"></div><span aria-hidden="true" class="CtNGM"></span></div><div class="QOpFt"><time datetime="2026-03-20T15:00:53.000Z" title="March 20, 2026 at 11:00 PM">Mar 20</time></div></div><div class="pLL0g"></div></div></div><div class="RIcm_"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-label="More options" tabindex="0" type="button"><span class="D4GNf"><svg height="24" role="presentation" width="24" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-24"></use></svg></span></button></span></span></div></div></div></header><div class="LaNUG" style=""><div><div class="Qb2zX"><span><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><span class="fUFKs iQED4">If you were happy before you knew someone, you can be happy after they’re gone.</span></div><div class="k31gt Me1c9"><p><strong>Unknown</strong></p></div></div></span></div></div></div><div class="qYXF9 ouMsp"><div class="hAFp3 uXaAK U7mrl" style="max-height: 100px;"><div class="mwjNz"><a class="KSDLH" data-testid="tag-link" href="/tagged/Unknown"><span aria-label="Unknown">#Unknown</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/motivation"><span aria-label="motivation">#motivation</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/quotes"><span aria-label="quotes">#quotes</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/poetry"><span aria-label="poetry">#poetry</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/literature"><span aria-label="literature">#literature</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/relationship%20quotes"><span aria-label="relationship quotes">#relationship quotes</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/writing"><span aria-label="writing">#writing</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/original"><span aria-label="original">#original</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/words"><span aria-label="words">#words</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/love"><span aria-label="love">#love</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/relationship"><span aria-label="relationship">#relationship</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/thoughts"><span aria-label="thoughts">#thoughts</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/lit"><span aria-label="lit">#lit</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/prose"><span aria-label="prose">#prose</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/spilled%20ink" style="text-decoration-color: rgb(255, 97, 206);"><span class="Qq2kF FeVQl LWiXm" style="background-image: linear-gradient(45deg, rgb(255, 97, 206), rgb(124, 92, 255));"><span aria-label="" class="EvMbR"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg" style="--icon-color-primary: #FF61CE;"><use href="#managed-icon__trending"></use></svg></span><span aria-label="spilled ink">#spilled ink</span></span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/inspiring%20quotes"><span aria-label="inspiring quotes">#inspiring quotes</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/life%20quotes"><span aria-label="life quotes">#life quotes</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/quoteoftheday"><span aria-label="quoteoftheday">#quoteoftheday</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/love%20quotes"><span aria-label="love quotes">#love quotes</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/poem"><span aria-label="poem">#poem</span></a><a class="KSDLH" data-testid="tag-link" href="/tagged/aesthetic"><span aria-label="aesthetic">#aesthetic</span></a><div class="yfSod"><div class="w9Fe6"><button>… <span class="m6pOC">See all</span></button></div></div></div></div><footer aria-label="Post footer" class="gm9gb"><div class="ndAE7 aNJi_"><div class="rtfvT rzBFb"><button class="VmbqY r21y5 Li_00 jpQn0 t8Z2i" aria-label="Comment" type="button"><span class="IXkOE"><svg height="24" role="presentation" width="24" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-24"></use></svg></span><span class="Kv19n"><span>9</span></span></button><span class="Vcrhu" data-testid="controlled-popover-wrapper"><span class="Vcrhu"><button aria-disabled="false" class="VmbqY r21y5 Li_00 jpQn0 b067h" aria-label="Reblog" aria-expanded="false" aria-haspopup="menu" id=":r3p:" type="button"><span class="IXkOE"><svg height="24" role="presentation" width="24" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reblog-24"></use></svg></span><span class="Kv19n"><span class="">700</span></span></button></span></span><div class="UgCAM"><span class="Vcrhu" data-testid="controlled-popover-wrapper"><span class="Vcrhu"><div class="pG5KN" tabindex="-1"><button aria-disabled="false" class="VmbqY r21y5 Li_00 jpQn0 R42pS" aria-label="Like" type="button"><span class="IXkOE"><svg height="24" role="presentation" width="24" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-24"></use></svg></span><span class="Kv19n"><span class="">2K</span></span></button></div></span></span></div></div><div><span class="BPf9u" data-testid="controlled-popover-wrapper" style="vertical-align: middle;"><span class="BPf9u"><button aria-disabled="false" class="VmbqY r21y5 Li_00 ndGZ1 ECYfO" aria-label="Share" type="button"><span class="D4GNf"><svg height="24" role="presentation" width="24" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-upload-24"></use></svg></span></button></span></span></div></div></footer></div></div></article>
+
+
+
+
+
+
+
+
+https://64.media.tumblr.com/avatar_bd60c94e9d57_512.pnj
+
+
+
+
+
+
+comment area 
+
+<div style="position: absolute; top: 0px; left: 0px; width: max-content; --popover-overflow-padding: 8px; z-index: 100; --popover-anchor-width: 55px; --popover-available-width: 1339px; --popover-available-height: 587px; transform: translate3d(150px, 651px, 0px); --popover-transform-origin: 212px calc(100% + 0px);"><div data-dialog="" role="dialog" tabindex="-1" aria-expanded="true" class="A8GnA" data-skip-glass-focus-trap="true" id=":r3n:" style="position: relative; --dialog-viewport-height: 953px;" data-open="true" data-enter="true"><div class="WOhUa"><div aria-label="Post Activity" class="EnRJg W5tdN" data-testid="post-activity-container"><div class="blSOv"><div class="cPL5a tmC7Y QCWsQ"><div class="BdbC0"><div class="cPL5a OadNw QCWsQ"><div role="tablist" aria-orientation="horizontal" aria-label="Activity notes categories" tabindex="-1" data-tabindex="0"><div class="hmJK7 NIqOz"><div class="AZJHD"><button class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-x-20"></use></svg></span></button><button tabindex="-1" type="button" role="tab" aria-selected="true" class="y7LSP dJyeE iMbDn" id="comments" data-active-item="true"><div class="Ncp30">9 comments</div></button><button tabindex="-1" type="button" role="tab" aria-selected="false" class="y7LSP dJyeE NJkFM" id="reblogs"><div class="Ncp30">701 reblogs</div></button><button tabindex="-1" type="button" role="tab" aria-selected="false" class="y7LSP dJyeE NJkFM" id="likes"><div class="Ncp30">1,960 likes</div></button></div></div></div></div></div><div class="F6HWd zEryr"><div class="HcnYt"><button role="combobox" class="VmbqY r21y5 KASvl EF4A5 VsKlQ Li_00" aria-expanded="false" aria-haspopup="listbox" aria-autocomplete="none" aria-controls=":r7j:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf">Oldest replies first</span><div class="IXkOE"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-chevron-down-16"></use></svg></div></button></div><button class="VmbqY r21y5 Li_00 giozV EF4A5" type="button" aria-label="Follow post" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="24" role="presentation" width="24" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-alert-plus-24"></use></svg></span></button></div></div></div><div class="ER5ZX"><div aria-label="Reply field" class="OQjMh mXmh6"><div class="qPAQc"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><button class="TRX6J zOAiO" aria-label="Select a blog. Current selection is mysticriddlehurricane" data-tabindex="" tabindex="-1"><span class="EvhBA lHc1y" tabindex="-1"><div class="wKEBn LPh7a"><div aria-label="avatar" class="nZ9l5" role="figure"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R tPU70" decoding="sync" loading="eager" sizes="32px" srcset="https://assets.tumblr.com/images/default_avatar/cone_gray_pink_64.png 64w, https://assets.tumblr.com/images/default_avatar/cone_gray_pink_96.png 96w, https://assets.tumblr.com/images/default_avatar/cone_gray_pink_128.png 128w, https://assets.tumblr.com/images/default_avatar/cone_gray_pink_512.png 512w" style="width: 32px; height: 32px;"></div></div></div></div></div></span></button></span></span></span></span></div><div class="Dx_DM WRQyC"><div class="u5dEF"><div class="x2Npm"><textarea aria-label="Reply" class="N8H25" maxlength="1975" placeholder="Reply as @mysticriddlehurricane" rows="1" style="height: auto;" data-tabindex="" tabindex="-1"></textarea></div><button class="TRX6J v6i4P" aria-label="Reply" data-testid="reply-button" disabled="" type="submit"><span class="EvhBA IDQzP" tabindex="-1"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__airplane"></use></svg></span></button></div></div></div></div><div class="rEGcu d5zR_ fYhK7 MPC_3" data-testid="notes-root"><div class="aoipA"><div class="ikihz"><div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/intrunsive-thoughts" title="intrunsive-thoughts" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/1f8455052644bab26daf2fc75601a481/a5ba16831a101685-9a/s64x64u_c1/f8292169d5175e9f29cc18f4eb45560c66e94e72.jpg 64w, https://64.media.tumblr.com/1f8455052644bab26daf2fc75601a481/a5ba16831a101685-9a/s96x96u_c1/8a8b294efc59f98be5c6859a50f75c50ae1f54e0.jpg 96w, https://64.media.tumblr.com/1f8455052644bab26daf2fc75601a481/a5ba16831a101685-9a/s128x128u_c1/821ab534d6fde3e201b5784062967edc20e44def.jpg 128w, https://64.media.tumblr.com/1f8455052644bab26daf2fc75601a481/a5ba16831a101685-9a/s512x512u_c1/c1e55947e36386ac89aaab74d325dd63458f3eb5.jpg 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/intrunsive-thoughts" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">intrunsive-thoughts</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812265212263759872" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-03-27T18:34:31.000Z" title="March 28, 2026 at 2:34 AM">Mar 28</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r7s:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>yes but doing more then just knowing will change you.</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg><span>2</span></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/brokentoy13" title="brokentoy13" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/1e45e5b799ae40b13d9d309d6b798b5b/190b053ab87587cb-8d/s64x64u_c1/0970400a00a86a90ce25bcda5c0889d354aa2a68.pnj 64w, https://64.media.tumblr.com/1e45e5b799ae40b13d9d309d6b798b5b/190b053ab87587cb-8d/s96x96u_c1/ccef7c896808b622b9acf0ca6b4a7cf3481ae5bd.pnj 96w, https://64.media.tumblr.com/1e45e5b799ae40b13d9d309d6b798b5b/190b053ab87587cb-8d/s128x128u_c1/e3818c49d2c480185ff7946608eb037027a0e5c3.pnj 128w, https://64.media.tumblr.com/1e45e5b799ae40b13d9d309d6b798b5b/190b053ab87587cb-8d/s512x512u_c1/7500326779b8b41207b76e885bbe5096381f98f9.pnj 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/brokentoy13" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">brokentoy13</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812306182523977728" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-03-28T05:25:43.000Z" title="March 28, 2026 at 1:25 PM">Mar 28</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r7t:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><span class="jj46W Me1c9"><div class="k31gt lGN6W Me1c9"><p>🎯🎯🎯</p></div></span></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/forestsarchive" title="forestsarchive" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/dac1ea26427b9d8bdfbd9bbbc07d5a2d/97d0c0a20c2f28a9-42/s64x64u_c1/148aca2353aea9eb2a0e61f90ee43f9d928272de.pnj 64w, https://64.media.tumblr.com/dac1ea26427b9d8bdfbd9bbbc07d5a2d/97d0c0a20c2f28a9-42/s96x96u_c1/c319465305fc8f66d4cf16b959d45411b683ccbd.pnj 96w, https://64.media.tumblr.com/dac1ea26427b9d8bdfbd9bbbc07d5a2d/97d0c0a20c2f28a9-42/s128x128u_c1/b16e7490cfacd4e7170aa4ff532f4244082e3eef.pnj 128w, https://64.media.tumblr.com/dac1ea26427b9d8bdfbd9bbbc07d5a2d/97d0c0a20c2f28a9-42/s512x512u_c1/2b32b8e4f31c3bac60b0aa3d09ba43a6349c25e0.pnj 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/forestsarchive" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">forestsarchive</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812482246286229504" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-03-30T04:04:10.000Z" title="March 30, 2026 at 12:04 PM">6d</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r7u:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>Real</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/iamkalipzo" title="iamkalipzo" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/96bb09f761643f42d37ddcf907c57f77/bca7d9de2eb32068-7e/s64x64u_c1/dce5d3ad2826f16660a37e486ea124a2c554a9ff.pnj 64w, https://64.media.tumblr.com/96bb09f761643f42d37ddcf907c57f77/bca7d9de2eb32068-7e/s96x96u_c1/b1ac00ebb772bf527d3c9e3f1026e80abde519cd.pnj 96w, https://64.media.tumblr.com/96bb09f761643f42d37ddcf907c57f77/bca7d9de2eb32068-7e/s128x128u_c1/23ff6e1928a7168e04cdb9846b2dce1f05fc6aaa.pnj 128w, https://64.media.tumblr.com/96bb09f761643f42d37ddcf907c57f77/bca7d9de2eb32068-7e/s512x512u_c1/651144b51e78ebdbe08aa0e9db76d2b5346cf44f.pnj 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/iamkalipzo" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">iamkalipzo</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812610334908137472" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-03-31T14:00:05.000Z" title="March 31, 2026 at 10:00 PM">5d</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r7v:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>If only they’d fucking leave me alone</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/goldenagegemini" title="goldenagegemini" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/8718160ed3b1561e8f75a58aa89de67c/b1a397ac960ee586-36/s64x64u_c1/7291096b620ddf774d527e62e40ca9577a48a53f.pnj 64w, https://64.media.tumblr.com/8718160ed3b1561e8f75a58aa89de67c/b1a397ac960ee586-36/s96x96u_c1/399cc88fdc5da40524ad13755ab904f918358a4d.pnj 96w, https://64.media.tumblr.com/8718160ed3b1561e8f75a58aa89de67c/b1a397ac960ee586-36/s128x128u_c1/ea0cc6fa0b23de6d71a3faef678bcfb29c1fa782.pnj 128w, https://64.media.tumblr.com/8718160ed3b1561e8f75a58aa89de67c/b1a397ac960ee586-36/s512x512u_c1/2650ee82810da637ead2f35070eaa21a7a3ae838.pnj 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/goldenagegemini" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">goldenagegemini</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812629899712036864" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-03-31T19:11:04.000Z" title="April 1, 2026 at 3:11 AM">5d</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r80:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>People can add to your life, but they are not your source.</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg><span>2</span></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/toujis-vib" title="toujis-vib" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R tPU70" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/5b20c0115df2e500ef91f01d417efedf/8de4613dd91097c4-dd/s64x64u_c1/ae609528e2abda997243745a4e73a6f9e8504868.pnj 64w, https://64.media.tumblr.com/5b20c0115df2e500ef91f01d417efedf/8de4613dd91097c4-dd/s96x96u_c1/a476206d479c0bf8b4b57c31044b71052eb486c6.pnj 96w, https://64.media.tumblr.com/5b20c0115df2e500ef91f01d417efedf/8de4613dd91097c4-dd/s128x128u_c1/c0be087d1dd4c5b46ca1b0d4c278afcb55e621f4.pnj 128w, https://64.media.tumblr.com/5b20c0115df2e500ef91f01d417efedf/8de4613dd91097c4-dd/s512x512u_c1/e39d1e72c4bb006229b761f95272b9b923bbd6cc.pnj 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/toujis-vib" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">toujis-vib</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812679412120272896" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-04-01T08:18:02.000Z" title="April 1, 2026 at 4:18 PM">4d</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r81:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>But I don't think we'll be the same person after that, even if we continue to be happy.</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/fadingbearprincess" title="fadingbearprincess" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R tPU70" decoding="sync" loading="eager" sizes="32px" srcset="https://assets.tumblr.com/images/default_avatar/sphere_open_64.png 64w, https://assets.tumblr.com/images/default_avatar/sphere_open_96.png 96w, https://assets.tumblr.com/images/default_avatar/sphere_open_128.png 128w, https://assets.tumblr.com/images/default_avatar/sphere_open_512.png 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/fadingbearprincess" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">fadingbearprincess</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812720332192497664" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-04-01T19:08:27.000Z" title="April 2, 2026 at 3:08 AM">4d</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r82:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>if you love someone, and she goes hospital, un d lässt unser kind abtreiben</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/remotelycrueltraitor" title="remotelycrueltraitor" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R tPU70" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/9c6b78c58be35da645d1cf7b404d9090/3a8d09a77144b577-84/s64x64u_c1/29086dc8d40c2bbcf46b720cec7b4d4e5f60cacc.jpg 64w, https://64.media.tumblr.com/9c6b78c58be35da645d1cf7b404d9090/3a8d09a77144b577-84/s96x96u_c1/88fc22e3cfd65abd717545b5b2a75d44b311e31b.jpg 96w, https://64.media.tumblr.com/9c6b78c58be35da645d1cf7b404d9090/3a8d09a77144b577-84/s128x128u_c1/5ce10ba71a3c3344403980622770e928c883c3ec.jpg 128w, https://64.media.tumblr.com/9c6b78c58be35da645d1cf7b404d9090/3a8d09a77144b577-84/s512x512u_c1/04165f947a87d7ffd20d1fc3d5f0e3dace1b03a9.jpg 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/remotelycrueltraitor" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">remotelycrueltraitor</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812802846944788480" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-04-02T16:59:59.000Z" title="April 3, 2026 at 12:59 AM">3d</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r83:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>Nooooo</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg></span></button></div></div></div></div><div><div aria-label="Reply" class="MI6Q7"><div class="rbSdL"><div aria-label="avatar" class="nZ9l5" role="figure"><span class="BPf9u" data-testid="controlled-popover-wrapper"><span class="BPf9u"><a href="/carterjamesblog" title="carterjamesblog" rel="noopener" target="_blank" class="BSUG4" role="link" tabindex="-1" data-tabindex="0"><div class="j4akp" style="width: 32px; height: 32px;"><div class="ESMam _eWg9"><div class="HsI7c" style="padding-bottom: 100%;"><img alt="Avatar" class="RoN4R" decoding="sync" loading="eager" sizes="32px" srcset="https://64.media.tumblr.com/7603a697cd4a834f4c40e926b132cf7a/525e4c8a422a931d-e1/s64x64u_c1/3c636361a32c34f16687bf035391aa4c51119f0b.pnj 64w, https://64.media.tumblr.com/7603a697cd4a834f4c40e926b132cf7a/525e4c8a422a931d-e1/s96x96u_c1/63f25efcf7ad9383da7256aac1ea3d1c43cb0a82.pnj 96w, https://64.media.tumblr.com/7603a697cd4a834f4c40e926b132cf7a/525e4c8a422a931d-e1/s128x128u_c1/9b4f378df4210e6122bc4b98ae2bb364963d9a73.pnj 128w, https://64.media.tumblr.com/7603a697cd4a834f4c40e926b132cf7a/525e4c8a422a931d-e1/s512x512u_c1/5f9867822acc817c4dae3ea1eda35f96f6f82c28.pnj 512w" style="width: 32px; height: 32px;"></div></div></div></a></span></span></div></div><div class="As9E4"><div class="Rnjfn"><div aria-label="Blog name" class="UYeiG"><span class="i8McQ" data-testid="controlled-popover-wrapper"><span class="i8McQ"><a rel="noopener" target="_blank" href="/carterjamesblog" class="tNyYL BSUG4" role="link" tabindex="-1" data-tabindex="0">carterjamesblog</a></span></span></div><a class="X9zTC" href="/surqrised/811617593177866240/if-you-were-happy-before-you-knew-someone-you-can/replies/812935885460029440" data-tabindex="" tabindex="-1"><time class="M_e0U SAVhn" datetime="2026-04-04T04:14:34.000Z" title="April 4, 2026 at 12:14 PM">1d</time></a><div class="nyRXA Dw18T"><button class="VmbqY r21y5 Li_00 giozV EF4A5" aria-expanded="false" aria-haspopup="menu" id=":r84:" type="button" data-tabindex="" tabindex="-1"><span class="D4GNf"><svg height="20" role="presentation" width="20" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-ui-more-horizontal-20"></use></svg></span></button></div></div><div class="BKpXK"><div class="GzjsW lN9Zs"><div class="k31gt Me1c9"><p>Absolutely 💯</p></div></div></div><div class="tsqZd okuN_ GBr0m"><button class="TRX6J NcZPX" aria-label="reply count button" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-reply-outline-16"></use></svg><span>Reply</span></span></button><button class="TRX6J NcZPX" aria-label="Like" data-tabindex="" tabindex="-1"><span class="EvhBA tS5OZ" tabindex="-1"><svg height="16" role="presentation" width="16" xmlns="http://www.w3.org/2000/svg"><use href="#managed-icon__ds-like-outline-16"></use></svg></span></button></div></div></div></div><div></div></div></div></div></div></div></div></div>
+
+
+
+
+
+nag plano ko mag buhat ug autocomment sa tumlr sa chrome extention
+
+
+autoCom("amazing!!", 5, 10000, 3)
+
+
+kwaon nako tanan article. 
+unya using jquery code ma click nako ang comment unya mo popup siya
+mag commnet dayun ko ug "amazing!!" after 5 sec gekan sa pag post next napud na article hantud naka 3 nako ka comment sa 
+isa ka post after ana break napud dayun mga 10secs
+
+autoCom(
+  comment, 
+  delay per sec, 
+  break after the post, 
+  how many per post)
+  
+  butanga ug ingon ani new MutationObserver(() => { kia ang commnet naka hide popup 
+  usaya delay or hinay ang internet
+  
+unya taga post nimo ma kuha nako ang data kung kinsa article ka nag commnet ma kuha nimo ang
+
+{
+authername:"",
+image: https://64.media.tumblr.com/avatar_bd60c94e9d57_512.png // naka ingn ani man ang image niya pnj eh png lang na
+date:"",
+comment:""
+}
+
+
+unya gusto nako dili balik-balik ang comment kung nag comment na siya ana dili na ma balik 
+eh check ang comment sa mga username kung nana and tanawa ang comment kung same ba. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function autoCom(comment, delaySec = 5, breakTime = 10000, perPost = 2) {
+
+  function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+
+  function waitForElement(selector, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+      const observer = new MutationObserver(() => {
+        const el = document.querySelector(selector);
+        if (el) {
+          observer.disconnect();
+          resolve(el);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      setTimeout(() => {
+        observer.disconnect();
+        reject("Element not found: " + selector);
+      }, timeout);
+    });
+  }
+
+  function alreadyCommented(myComment) {
+    const comments = document.querySelectorAll('[aria-label="Reply"] p');
+    return Array.from(comments).some(c => 
+      c.innerText.trim().toLowerCase() === myComment.toLowerCase()
+    );
+  }
+
+  const articles = document.querySelectorAll("article");
+
+  for (let article of articles) {
+    try {
+      // 📦 Extract data
+      const data = {
+        authorname: article.querySelector('[rel="author"]')?.innerText || "",
+        image: article.querySelector("img")?.src?.replace(".pnj", ".png") || "",
+        date: article.querySelector("time")?.innerText || "",
+        comment: comment
+      };
+
+      console.log("POST:", data);
+
+      const commentBtn = article.querySelector('[aria-label="Comment"]');
+      if (!commentBtn) continue;
+
+      commentBtn.click();
+
+      // wait popup textarea
+      const textarea = await waitForElement("textarea");
+
+      for (let i = 0; i < perPost; i++) {
+
+        if (alreadyCommented(comment)) {
+          console.log("⚠️ Already commented, skipping...");
+          break;
+        }
+
+        await sleep(delaySec * 1000);
+
+        textarea.focus();
+        textarea.value = comment;
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+
+        const sendBtn = document.querySelector('[data-testid="reply-button"]');
+        if (sendBtn) sendBtn.click();
+
+        console.log(`✅ Comment sent (${i + 1})`);
+
+        await sleep(2000);
+      }
+
+      console.log("⏸ Break...");
+      await sleep(breakTime);
+
+    } catch (err) {
+      console.log("❌ Error:", err);
+    }
+  }
+
+  console.log("🎉 Done all posts");
+}
+
+
+
+sayup ni 
+
+autoCom(comment, delaySec = 5, breakTime = 10000, perPost = 2) 
+
+
+haya ra siya mag break kung na humana ang 2 ka post
+then break sa ug 10secs
+
+example:
+
+1. post a comment 
+	delay 5s
+2 post a comment
+break 10sec
+
+post agin
+1. post a comment 
+	delay 5s
+2 post a comment
+break 10sec
+
+
+other sample 
+autoCom("amazing", 5, 10000, 3)
+
+
+1. amazing
+	delay 5s
+2 amazing
+	delay 5s
+3 amazing
+break 10sec
+
+post agin
+1. amazing
+	delay 5s
+2 amazing
+	delay 5s
+3 amazing
+break 10sec
+
+
+
+
+
+
+
+
+
+
+
+
+
+genmo.ai
+plaiday.io
+stable video
+pika

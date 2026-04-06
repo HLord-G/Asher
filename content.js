@@ -1,4 +1,10 @@
 const owl_data = [];
+let message = [];
+let mainObserver;
+let commentObserver;
+
+
+
 
 // ==========================
 // GENERATE UNIQUE ID
@@ -148,3 +154,183 @@ new MutationObserver((mutations) => {
   childList: true,
   subtree: true
 });
+
+
+// ==========================================================================================================================[S] COMMENT AREA
+
+// I-sigurado nga naay global o outer variable ani aron dili mag-error
+// let message = []; 
+
+function startObserving() {
+    if (window.mainObserver) {
+        console.log("Main observer is already running.");
+        return; 
+    }
+
+    window.mainObserver = new MutationObserver(() => {
+        const $container = $('div[data-testid="notes-root"]');
+        const $textarea = $('textarea[aria-label="Reply"]');
+        const $sendBtn = $('button[data-testid="reply-button"]');
+
+        if ($container.length > 0) {
+            if (!$textarea.attr('owl_comment')) $textarea.attr('owl_comment', '');
+            if (!$sendBtn.attr('owl_sent')) $sendBtn.attr('owl_sent', '');
+
+            if (!window.commentObserver) {
+                console.log("Monitoring comments loading...");
+                
+                window.commentObserver = new MutationObserver(() => {
+                    let currentMessages = [];
+                    
+                    // CHECKPOINT 1: Nakit-an ba niya ang comment wrappers?
+                    const $commentWrappers = $('div.MI6Q7'); // Suwayi og tangtang ang [aria-label="Reply"] una para mas broad
+                    console.log(`Nakit-an nga comment wrappers: ${$commentWrappers.length}`);
+
+                    $commentWrappers.each(function() {
+                        // Mangita sa user ug comment
+                        const user = $(this).find('div[aria-label="Blog name"] a').text().trim();
+                        const commentText = $(this).find('.k31gt').text().trim();
+                        
+                        // CHECKPOINT 2: Nakit-an ba niya ang text sulod sa matag wrapper?
+                        console.log(`Checking wrapper... User: "${user}", Comment: "${commentText}"`);
+
+                        if (user && commentText) {
+                            currentMessages.push({ user, comment: commentText });
+                        }
+                    });
+
+                    // Update the array kung naay nabag-o
+                    if (JSON.stringify(message) !== JSON.stringify(currentMessages)) {
+                        message = currentMessages;
+                        console.log("Message updated:", message);
+                    }
+                });
+
+                // Gidugang ang characterData para ma-detect kung ang text mismo ang nag-ilis
+                window.commentObserver.observe($container[0], { childList: true, subtree: true, characterData: true });
+            }
+        } else {
+            if (window.commentObserver) {
+                window.commentObserver.disconnect();
+                window.commentObserver = null;
+                message = [];
+                console.log("Popup closed, message cleared.");
+            }
+        }
+    });
+
+    window.mainObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+// aria-label="Reply restricted"
+
+// message
+// owl_comment
+// owl_sent
+// ==========================================================================================================================[E] COMMENT AREA
+
+
+  startObserving();
+
+let clickonce = false
+setTimeout(() => {
+    $(`[owl_coms=${owl_data[0]["owl_coms"]}]`).click()
+ startObserving();
+    console.log(owl_data[0]["owl_coms"])
+    console.log("|+========================================================+|")
+
+    setTimeout(() => {
+     const commentBox = document.querySelector('textarea[owl_comment]');
+      if (commentBox) {
+          commentBox.value = "nice onesss";
+          commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+          console.log("Success: Na-set na ang value!");
+
+
+          setTimeout(() => {
+            clickonce = true
+            if (clickonce) {
+              // $("[owl_sent]").click()
+              setTimeout(() => {
+                clickonce = false
+              }, 20);
+            }
+          }, 1000);
+
+      } else {
+          console.log("Error: Wala nakit-an ang textarea. Basin naa sa sulod sa iframe?");
+      }
+    }, 2000);
+
+}, 5000);
+
+
+
+
+
+setTimeout(() => {
+    $(`[owl_coms=${owl_data[1]["owl_coms"]}]`).click()
+ startObserving();
+    console.log(owl_data[1]["owl_coms"])
+    console.log("|+========================================================+|")
+
+    setTimeout(() => {
+     const commentBox = document.querySelector('textarea[owl_comment]');
+      if (commentBox) {
+          commentBox.value = "nice onesss";
+          commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+          console.log("Success: Na-set na ang value!");
+
+
+          setTimeout(() => {
+            clickonce = true
+            if (clickonce) {
+              // $("[owl_sent]").click()
+              setTimeout(() => {
+                clickonce = false
+              }, 20);
+            }
+          }, 1000);
+
+      } else {
+          console.log("Error: Wala nakit-an ang textarea. Basin naa sa sulod sa iframe?");
+      }
+    }, 2000);
+
+}, 15000);
+
+
+
+/*
+
+setTimeout(() => {
+  $(`[owl_coms=${owl_data[1]["owl_coms"]}]`).click()
+  console.log(owl_data[1]["owl_coms"])
+  console.log("|+========================================================+|")
+  setTimeout(() => {
+  }, 30);
+}, 15000);
+
+
+
+setTimeout(() => {
+  $(`[owl_coms=${owl_data[3]["owl_coms"]}]`).click()
+  console.log(owl_data[3]["owl_coms"])
+  console.log("|+========================================================+|")
+  setTimeout(() => {
+  }, 30);
+}, 35000);
+
+*/
+
+
+
+
+
+
+
+function atoCom(comm, delay, brks, pst) {
+  
+
+
+}
