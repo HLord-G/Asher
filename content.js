@@ -314,6 +314,7 @@ function waitForMessage(callback) {
 
         if (++tries > 15) {
             console.log("❌ No message detected");
+            $("[owl_sent]").click();
             clearInterval(interval);
         }
     }, 400);
@@ -321,251 +322,119 @@ function waitForMessage(callback) {
 
 
 
-// setTimeout(() => {
-
-//     const selector = `[owl_coms=${owl_data[0]["owl_coms"]}]`;
-//     const $target = $(selector);
-
-//     if ($target.length === 0) {
-//         console.log("❌ Target not found");
-//         return;
-//     }
-
-//     // ✅ CLICK
-//     $target.click();
-//     startObserving();
-
-//     console.log("Clicked:", owl_data[0]["owl_coms"]);
-//     console.log("|+========================================================+|");
-
-//     // ✅ WAIT COMMENT BOX
-//     waitForCommentBox((commentBox) => {
-
-//         // ✅ TYPE COMMENT
-//         commentBox.value = "nice onesss";
-//         commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-//         console.log("✅ Comment set!");
-
-//         // OPTIONAL SEND
-//         /*
-//         setTimeout(() => {
-//             $("[owl_sent]").click();
-//             console.log("📤 Sent!");
-//         }, 500);
-//         */
-
-//         // ✅ WAIT MESSAGE DATA
-//         waitForMessage((msg) => {
-
-//             console.log("=======================================================");
-//             console.log("✅ USER:", msg[0].user);
-//             console.log("=======================================================");
-
-//             // ✅ CLEANUP AFTER SUCCESS
-//             if (window.commentObserver) {
-//                 window.commentObserver.disconnect();
-//                 window.commentObserver = null;
-//             }
-
-//         });
-
-//     });
-
-// }, 5000);
-
-
-
-
-// setTimeout(() => {
-
-//     const selector = `[owl_coms=${owl_data[0]["owl_coms"]}]`;
-//     const $target = $(selector);
-
-//     if ($target.length === 0) {
-//         console.log("❌ Target not found");
-//         return;
-//     }
-
-//     // ✅ CLICK
-//     $target.click();
-//     startObserving();
-
-//     console.log("Clicked:", owl_data[0]["owl_coms"]);
-//     console.log("|+========================================================+|");
-
-//     // ✅ WAIT COMMENT BOX
-//     waitForCommentBox((commentBox) => {
-
-//         // ✅ TYPE COMMENT
-//         commentBox.value = "nice onesss";
-//         commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-//         console.log("✅ Comment set!");
-
-//         // OPTIONAL SEND
-//         setTimeout(() => {
-//             $("[owl_sent]").click();
-//             console.log("📤 Sent!");
-//         }, 500);
-        
-
-//         // ✅ WAIT MESSAGE DATA
-//         waitForMessage((msg) => {
-
-//             console.log("=======================================================");
-//             console.log("✅ USER:", msg[0].user);
-//             console.log("=======================================================");
-
-//             // ✅ CLEANUP AFTER SUCCESS
-//             if (window.commentObserver) {
-//                 window.commentObserver.disconnect();
-//                 window.commentObserver = null;
-//             }
-
-//         });
-
-//     });
-
-// }, 15000);
-
-
-
-
-
-
-
-
-
-/*
-
 setTimeout(() => {
-  $(`[owl_coms=${owl_data[1]["owl_coms"]}]`).click()
-  console.log(owl_data[1]["owl_coms"])
-  console.log("|+========================================================+|")
-  setTimeout(() => {
-  }, 30);
-}, 15000);
 
+    const selector = `[owl_coms=${owl_data[3]["owl_coms"]}]`;
+    const $target = $(selector);
 
+    if ($target.length === 0) {
+        console.log("❌ Target not found");
+        return;
+    }
 
-setTimeout(() => {
-  $(`[owl_coms=${owl_data[3]["owl_coms"]}]`).click()
-  console.log(owl_data[3]["owl_coms"])
-  console.log("|+========================================================+|")
-  setTimeout(() => {
-  }, 30);
-}, 35000);
+    // ✅ CLICK
+    $target.click();
+    startObserving();
 
-*/
+    console.log("Clicked:", owl_data[3]["owl_coms"]);
+    console.log("|+========================================================+|");
 
+    // ✅ WAIT COMMENT BOX
+    waitForCommentBox((commentBox) => {
+      const $textarea = $('textarea[aria-label="Reply"]');
 
+        // ✅ TYPE COMMENT
+        let comms = "nice onesss";
+        commentBox.value = comms;
+        commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+        console.log("✅ Comment set!");
 
-
-function atoCom(comm, delaySec = 5, breakTime = 10000, perPost = 2) {
-
-    let index = 0;
-    let count = 0;
- 
-
-    function processNext() {
-
-        if (index >= owl_data.length) {
-            console.log("✅ DONE tanan");
-            return;
+        if ($textarea.attr('owl_comment')){
+          $("[owl_clsoe_com]").click()
         }
 
-        const selector = `[owl_coms=${owl_data[index]["owl_coms"]}]`;
-        const $target = $(selector);
-
-        if ($target.length === 0) {
-            console.log(`❌ Target not found index ${index}`);
-            index++;
-            processNext();
-            return;
-        }
-
-        console.log(`🚀 Checking index ${index}`);
-
-        // CLICK + START OBSERVE
-        $target.click();
-        startObserving();
-
-        // ✅ WAIT MESSAGE FIRST (IMPORTANT)
+        // OPTIONAL SEND
+        // ✅ WAIT MESSAGE DATA
         waitForMessage((msg) => {
 
-            let alreadyCommented = false;
+                console.log("=======================================================");
+                msg.forEach(x => {
+                    if (x.user === username && x.comment === comms) {
+                        console.log("⚠️ cancel (duplicate)");
+                        $("[owl_clsoe_com]").click()
+                    }else{
+                      $("[owl_sent]").click();
 
-            // 🔍 CHECK KUNG NAA NA COMMENT ANG USER
-            for (let i = 0; i < msg.length; i++) {
-                let u = msg[i].user.toLowerCase();
-                let c = msg[i].comment.toLowerCase();
+                      setTimeout(() => {
+                        $("[owl_clsoe_com]").click()
+                      }, 1900);
+                    }
+                });
+            
+            console.log("=======================================================");
 
-                if (u.includes(username.toLowerCase()) && c.includes(comm.toLowerCase())) {
-                    alreadyCommented = true;
-                    break;
-                }
+            // ✅ CLEANUP AFTER SUCCESS
+            if (window.commentObserver) {
+                window.commentObserver.disconnect();
+                window.commentObserver = null;
             }
-
-            if (alreadyCommented) {
-                console.log("⏭️ SKIP - Already commented");
-
-                cleanupAndNext();
-                return;
-            }
-
-            console.log("💬 Wala pa comment, mo post ta...");
-
-            // ✅ WAIT COMMENT BOX
-            waitForCommentBox((commentBox) => {
-
-                commentBox.value = comm;
-                commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-
-                console.log("✍️ Comment set");
-
-                setTimeout(() => {
-                    $("[owl_sent]").click();
-                    console.log("📤 Sent!");
-                }, 500);
-
-                cleanupAndNext();
-            });
 
         });
 
-    }
+    });
 
-    function cleanupAndNext() {
-
-        if (window.commentObserver) {
-            window.commentObserver.disconnect();
-            window.commentObserver = null;
-        }
-
-        setTimeout(() => {
-
-            index++;
-            count++;
-
-            // BREAK LOGIC
-            if (count >= perPost) {
-                console.log(`⏸ Break ${breakTime}ms`);
-                count = 0;
-
-                setTimeout(() => {
-                    processNext();
-                }, breakTime);
-
-            } else {
-                setTimeout(() => {
-                    processNext();
-                }, delaySec * 1000);
-            }
-
-        }, 1500);
-    }
-
-    processNext();
-}
+}, 5000);
 
 
-atoCom("NICE", 5, 5000, 2)
+ 
+
+
+
+
+
+
+
+ 
+
+// // startObserving
+
+// gusto nako baguhon ni buhatan nako function 
+// atoCom("NICE", 5, 2, 5000)
+
+
+
+// atoCom(comm, delaySec, perPost, breakTime) 
+ 
+
+
+// comm      = kung unsa ang comment akung eh post
+// delaySec  = delay kung pila ka second haya mag pili ug lain na post
+// perPost   = kung pila ka post ang eh comment
+// breakTime = pag na comment na nimo tanan post na ge asign sa perPost mag break siya unya pag ma hurot na oras sa break mo balik napud siya loop
+
+// and ang gamit gyud ani is kwaon ang comments startObserving()
+// haya siya mag post eh check sa niya ang username ug ang comment kung same kung parihas dili na eh post ug ma escape na
+// sa lain comment ug dili na mag delay 
+
+// tapus ang delay wala ge gana ug ayu murag same same ra sila sa break mali ni
+
+// atoCom("NICE", 5, 2, 10000, true)
+
+
+// ani man gud dapat example
+
+// atoCom("NICE", 5, 2, 10000, true)
+
+// delay 5sec
+// post "NICE"
+// delay 5sec
+// post "NICE"
+// break 10sec
+// repeat
+// delay 5sec
+// post "NICE"
+// delay 5sec
+// post "NICE"
+// break 10sec
+
+// balik balik lang hantud
