@@ -3,6 +3,8 @@ let message = [];
 let mainObserver;
 let commentObserver;
 
+let username = "mysticriddlehurricane"
+
 
 
 
@@ -228,7 +230,7 @@ function startObserving() {
             if (window.commentObserver) {
                 window.commentObserver.disconnect();
                 window.commentObserver = null;
-                message = [];
+                // message = [];
                 console.log("Popup closed, message cleared.");
             }
         }
@@ -250,7 +252,7 @@ function clickAndRefresh(index, delay) {
         }
 
         // ✅ reset message
-        message = [];
+        // message = [];
 
         // ✅ click target
         const selector = `[owl_coms="${owl_data[index].owl_coms}"]`;
@@ -274,78 +276,162 @@ function clickAndRefresh(index, delay) {
 // ==========================================================================================================================[E] COMMENT AREA
 
 
-  startObserving();
-
-let clickonce = false
-setTimeout(() => {
-    $(`[owl_coms=${owl_data[0]["owl_coms"]}]`).click()
- startObserving();
-    console.log(owl_data[0]["owl_coms"])
-    console.log("|+========================================================+|")
-
-    setTimeout(() => {
-     const commentBox = document.querySelector('textarea[owl_comment]');
-      if (commentBox) {
-          commentBox.value = "nice onesss";
-          commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-          console.log("Success: Na-set na ang value!");
-
-
-          setTimeout(() => {
-            clickonce = true
-            if (clickonce) {
-              // $("[owl_sent]").click()
-
-              $("[owl_clsoe_com]").click()
-              setTimeout(() => {
-                clickonce = false
-              }, 20);
-            }
-          }, 1000);
-
-      } else {
-          console.log("Error: Wala nakit-an ang textarea. Basin naa sa sulod sa iframe?");
-      }
-    }, 2000);
-
-}, 5000);
+startObserving();
 
 
 
 
 
-setTimeout(() => {
-    $(`[owl_coms=${owl_data[1]["owl_coms"]}]`).click()
- startObserving();
-    console.log(owl_data[1]["owl_coms"])
-    console.log("|+========================================================+|")
 
-    setTimeout(() => {
-     const commentBox = document.querySelector('textarea[owl_comment]');
-      if (commentBox) {
-          commentBox.value = "nice onesss";
-          commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-          console.log("Success: Na-set na ang value!");
+let clickonce = false;
+let ifSent = false;
+
+function waitForCommentBox(callback) {
+    let tries = 0;
+
+    const interval = setInterval(() => {
+        const el = document.querySelector('textarea[owl_comment]');
+        if (el) {
+            clearInterval(interval);
+            callback(el);
+        }
+
+        if (++tries > 15) {
+            console.log("❌ No comment box");
+            clearInterval(interval);
+        }
+    }, 300);
+}
+
+function waitForMessage(callback) {
+    let tries = 0;
+
+    const interval = setInterval(() => {
+        if (message && message.length > 0) {
+            clearInterval(interval);
+            callback(message);
+        }
+
+        if (++tries > 15) {
+            console.log("❌ No message detected");
+            clearInterval(interval);
+        }
+    }, 400);
+}
 
 
-          setTimeout(() => {
-            clickonce = true
-            if (clickonce) {
-              // $("[owl_sent]").click()
-              $("[owl_clsoe_com]").click()
 
-              setTimeout(() => {
-                clickonce = false
-              }, 20);
-            }
-          }, 1000);
+// setTimeout(() => {
 
-      } else {
-          console.log("Error: Wala nakit-an ang textarea. Basin naa sa sulod sa iframe?");
-      }
-    }, 2000);
+//     const selector = `[owl_coms=${owl_data[0]["owl_coms"]}]`;
+//     const $target = $(selector);
 
-}, 15000);
+//     if ($target.length === 0) {
+//         console.log("❌ Target not found");
+//         return;
+//     }
+
+//     // ✅ CLICK
+//     $target.click();
+//     startObserving();
+
+//     console.log("Clicked:", owl_data[0]["owl_coms"]);
+//     console.log("|+========================================================+|");
+
+//     // ✅ WAIT COMMENT BOX
+//     waitForCommentBox((commentBox) => {
+
+//         // ✅ TYPE COMMENT
+//         commentBox.value = "nice onesss";
+//         commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+//         console.log("✅ Comment set!");
+
+//         // OPTIONAL SEND
+//         /*
+//         setTimeout(() => {
+//             $("[owl_sent]").click();
+//             console.log("📤 Sent!");
+//         }, 500);
+//         */
+
+//         // ✅ WAIT MESSAGE DATA
+//         waitForMessage((msg) => {
+
+//             console.log("=======================================================");
+//             console.log("✅ USER:", msg[0].user);
+//             console.log("=======================================================");
+
+//             // ✅ CLEANUP AFTER SUCCESS
+//             if (window.commentObserver) {
+//                 window.commentObserver.disconnect();
+//                 window.commentObserver = null;
+//             }
+
+//         });
+
+//     });
+
+// }, 5000);
+
+
+
+
+// setTimeout(() => {
+
+//     const selector = `[owl_coms=${owl_data[0]["owl_coms"]}]`;
+//     const $target = $(selector);
+
+//     if ($target.length === 0) {
+//         console.log("❌ Target not found");
+//         return;
+//     }
+
+//     // ✅ CLICK
+//     $target.click();
+//     startObserving();
+
+//     console.log("Clicked:", owl_data[0]["owl_coms"]);
+//     console.log("|+========================================================+|");
+
+//     // ✅ WAIT COMMENT BOX
+//     waitForCommentBox((commentBox) => {
+
+//         // ✅ TYPE COMMENT
+//         commentBox.value = "nice onesss";
+//         commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+//         console.log("✅ Comment set!");
+
+//         // OPTIONAL SEND
+//         setTimeout(() => {
+//             $("[owl_sent]").click();
+//             console.log("📤 Sent!");
+//         }, 500);
+        
+
+//         // ✅ WAIT MESSAGE DATA
+//         waitForMessage((msg) => {
+
+//             console.log("=======================================================");
+//             console.log("✅ USER:", msg[0].user);
+//             console.log("=======================================================");
+
+//             // ✅ CLEANUP AFTER SUCCESS
+//             if (window.commentObserver) {
+//                 window.commentObserver.disconnect();
+//                 window.commentObserver = null;
+//             }
+
+//         });
+
+//     });
+
+// }, 15000);
+
+
+
+
+
+
 
 
 
@@ -374,11 +460,112 @@ setTimeout(() => {
 
 
 
+function atoCom(comm, delaySec = 5, breakTime = 10000, perPost = 2) {
 
+    let index = 0;
+    let count = 0;
+ 
 
+    function processNext() {
 
-function atoCom(comm, delay, brks, pst) {
-  
+        if (index >= owl_data.length) {
+            console.log("✅ DONE tanan");
+            return;
+        }
 
+        const selector = `[owl_coms=${owl_data[index]["owl_coms"]}]`;
+        const $target = $(selector);
 
+        if ($target.length === 0) {
+            console.log(`❌ Target not found index ${index}`);
+            index++;
+            processNext();
+            return;
+        }
+
+        console.log(`🚀 Checking index ${index}`);
+
+        // CLICK + START OBSERVE
+        $target.click();
+        startObserving();
+
+        // ✅ WAIT MESSAGE FIRST (IMPORTANT)
+        waitForMessage((msg) => {
+
+            let alreadyCommented = false;
+
+            // 🔍 CHECK KUNG NAA NA COMMENT ANG USER
+            for (let i = 0; i < msg.length; i++) {
+                let u = msg[i].user.toLowerCase();
+                let c = msg[i].comment.toLowerCase();
+
+                if (u.includes(username.toLowerCase()) && c.includes(comm.toLowerCase())) {
+                    alreadyCommented = true;
+                    break;
+                }
+            }
+
+            if (alreadyCommented) {
+                console.log("⏭️ SKIP - Already commented");
+
+                cleanupAndNext();
+                return;
+            }
+
+            console.log("💬 Wala pa comment, mo post ta...");
+
+            // ✅ WAIT COMMENT BOX
+            waitForCommentBox((commentBox) => {
+
+                commentBox.value = comm;
+                commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+
+                console.log("✍️ Comment set");
+
+                setTimeout(() => {
+                    $("[owl_sent]").click();
+                    console.log("📤 Sent!");
+                }, 500);
+
+                cleanupAndNext();
+            });
+
+        });
+
+    }
+
+    function cleanupAndNext() {
+
+        if (window.commentObserver) {
+            window.commentObserver.disconnect();
+            window.commentObserver = null;
+        }
+
+        setTimeout(() => {
+
+            index++;
+            count++;
+
+            // BREAK LOGIC
+            if (count >= perPost) {
+                console.log(`⏸ Break ${breakTime}ms`);
+                count = 0;
+
+                setTimeout(() => {
+                    processNext();
+                }, breakTime);
+
+            } else {
+                setTimeout(() => {
+                    processNext();
+                }, delaySec * 1000);
+            }
+
+        }, 1500);
+    }
+
+    processNext();
 }
+
+
+atoCom("NICE", 5, 10000, 2)
