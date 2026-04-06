@@ -568,4 +568,4 @@ function atoCom(comm, delaySec = 5, breakTime = 10000, perPost = 2) {
 }
 
 
-atoCom("NICE", 5, 10000, 2)
+atoCom("NICE", 5, 5000, 2)
