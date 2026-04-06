@@ -159,57 +159,72 @@ new MutationObserver((mutations) => {
 // ==========================================================================================================================[S] COMMENT AREA
 
 // I-sigurado nga naay global o outer variable ani aron dili mag-error
-// let message = []; 
 
 function startObserving() {
     if (window.mainObserver) {
         console.log("Main observer is already running.");
-        return; 
+        return;
     }
 
     window.mainObserver = new MutationObserver(() => {
         const $container = $('div[data-testid="notes-root"]');
         const $textarea = $('textarea[aria-label="Reply"]');
         const $sendBtn = $('button[data-testid="reply-button"]');
+        const $closeBtn = $('button[class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined"]');
+
 
         if ($container.length > 0) {
+
+            // ✅ reset message kada open
+            message = [];
+
             if (!$textarea.attr('owl_comment')) $textarea.attr('owl_comment', '');
             if (!$sendBtn.attr('owl_sent')) $sendBtn.attr('owl_sent', '');
+            if (!$closeBtn.attr('owl_clsoe_com')) $closeBtn.attr('owl_clsoe_com', '');
 
             if (!window.commentObserver) {
                 console.log("Monitoring comments loading...");
-                
+
                 window.commentObserver = new MutationObserver(() => {
-                    let currentMessages = [];
-                    
-                    // CHECKPOINT 1: Nakit-an ba niya ang comment wrappers?
-                    const $commentWrappers = $('div.MI6Q7'); // Suwayi og tangtang ang [aria-label="Reply"] una para mas broad
-                    console.log(`Nakit-an nga comment wrappers: ${$commentWrappers.length}`);
 
-                    $commentWrappers.each(function() {
-                        // Mangita sa user ug comment
-                        const user = $(this).find('div[aria-label="Blog name"] a').text().trim();
-                        const commentText = $(this).find('.k31gt').text().trim();
-                        
-                        // CHECKPOINT 2: Nakit-an ba niya ang text sulod sa matag wrapper?
-                        console.log(`Checking wrapper... User: "${user}", Comment: "${commentText}"`);
+                    // gamay delay para sure loaded ang DOM
+                    setTimeout(() => {
 
-                        if (user && commentText) {
-                            currentMessages.push({ user, comment: commentText });
+                        let currentMessages = [];
+
+                        const $commentWrappers = $container.find('div.MI6Q7');
+                        console.log(`Nakit-an nga comment wrappers: ${$commentWrappers.length}`);
+
+                        $commentWrappers.each(function () {
+                            const user = $(this).find('div[aria-label="Blog name"] a').text().trim();
+                            const commentText = $(this).find('.k31gt').text().trim();
+
+                            console.log(`User: "${user}", Comment: "${commentText}"`);
+
+                            if (user && commentText) {
+                                currentMessages.push({ user, comment: commentText });
+                            }
+                        });
+
+                        // ✅ mas safe compare
+                        if (currentMessages.length !== message.length) {
+                            message = currentMessages;
+                              console.log("Message updated:", message);
                         }
-                    });
 
-                    // Update the array kung naay nabag-o
-                    if (JSON.stringify(message) !== JSON.stringify(currentMessages)) {
-                        message = currentMessages;
-                        console.log("Message updated:", message);
-                    }
+                    }, 300);
+
                 });
 
-                // Gidugang ang characterData para ma-detect kung ang text mismo ang nag-ilis
-                window.commentObserver.observe($container[0], { childList: true, subtree: true, characterData: true });
+                window.commentObserver.observe($container[0], {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                });
             }
+
         } else {
+            // ✅ cleanup kung close ang popup
             if (window.commentObserver) {
                 window.commentObserver.disconnect();
                 window.commentObserver = null;
@@ -219,7 +234,36 @@ function startObserving() {
         }
     });
 
-    window.mainObserver.observe(document.body, { childList: true, subtree: true });
+    window.mainObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+function clickAndRefresh(index, delay) {
+    setTimeout(() => {
+
+        // ✅ stop previous observer
+        if (window.commentObserver) {
+            window.commentObserver.disconnect();
+            window.commentObserver = null;
+        }
+
+        // ✅ reset message
+        message = [];
+
+        // ✅ click target
+        const selector = `[owl_coms="${owl_data[index].owl_coms}"]`;
+        const $target = $(selector);
+
+        if ($target.length > 0) {
+            $target.click();
+            console.log(`Clicked index ${index}`);
+        } else {
+            console.log(`Element not found for index ${index}`);
+        }
+
+    }, delay);
 }
 
 // aria-label="Reply restricted"
@@ -251,6 +295,8 @@ setTimeout(() => {
             clickonce = true
             if (clickonce) {
               // $("[owl_sent]").click()
+
+              $("[owl_clsoe_com]").click()
               setTimeout(() => {
                 clickonce = false
               }, 20);
@@ -286,6 +332,8 @@ setTimeout(() => {
             clickonce = true
             if (clickonce) {
               // $("[owl_sent]").click()
+              $("[owl_clsoe_com]").click()
+
               setTimeout(() => {
                 clickonce = false
               }, 20);
