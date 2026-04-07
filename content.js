@@ -2,11 +2,70 @@ const owl_data = [];
 let message = [];
 let mainObserver;
 let commentObserver;
-
 let username = "mysticriddlehurricane"
 
+let comment;
+let percount = 0;
+let _anyChange = 0;
+
+//==================================================== [S] EH LOAD TANAN
+function autoScrollLoadAll() {
+  let lastHeight = 0;
+  let sameCount = 0;
+
+  const interval = setInterval(() => {
+    // scroll down
+    window.scrollTo(0, document.body.scrollHeight);
+
+    let newHeight = document.body.scrollHeight;
+
+    if (newHeight === lastHeight) {
+      sameCount++;
+
+      // kung 3x same height → wala na nag load
+      if (sameCount >= 3) {
+        clearInterval(interval);
+        alert("Loaded na tanan articles ✅");
+      }
+    } else {
+      sameCount = 0; // reset kung naay new load
+      lastHeight = newHeight;
+    }
+
+  }, 1500); // adjust delay kung hinay net
+}
+
+// trigger
+// autoScrollLoadAll();
+
+function scrollToBottom() {
+  window.scrollTo({
+    top: document.body.scrollHeight,
+    behavior: "smooth"
+  });
+}
+//==================================================== [E] EH LOAD TANAN
 
 
+ 
+
+
+$("body").append(`
+  <div style="
+    position:fixed;
+    bottom:43%;
+    left:3%;
+    background:#000;
+    color:#fff;
+    padding:10px;
+    border-radius:8px;
+    z-index:9999;
+  ">
+    
+    <button openthis style="position:fixed; left:-400%;"> opeen </button>
+ <button starts> start </button>
+  </div>
+`)
 
 // ==========================
 // GENERATE UNIQUE ID
@@ -173,7 +232,7 @@ function startObserving() {
         const $textarea = $('textarea[aria-label="Reply"]');
         const $sendBtn = $('button[data-testid="reply-button"]');
         const $closeBtn = $('button[class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined"]');
-
+        const $restreck = $(`div[aria-label="Reply restricted"]`);
 
         if ($container.length > 0) {
 
@@ -183,6 +242,8 @@ function startObserving() {
             if (!$textarea.attr('owl_comment')) $textarea.attr('owl_comment', '');
             if (!$sendBtn.attr('owl_sent')) $sendBtn.attr('owl_sent', '');
             if (!$closeBtn.attr('owl_clsoe_com')) $closeBtn.attr('owl_clsoe_com', '');
+            if (!$restreck.attr('sirado')) $restreck.attr('sirado', '');
+
 
             if (!window.commentObserver) {
                 console.log("Monitoring comments loading...");
@@ -320,83 +381,413 @@ function waitForMessage(callback) {
     }, 400);
 }
 
+// setTimeout(() => {
+//   const selector = `[owl_coms=${owl_data[3]["owl_coms"]}]`;
+//   const $target = $(selector);
 
+//   $target.click()
+// }, 2000);
 
-setTimeout(() => {
+// setTimeout(() => {
 
-    const selector = `[owl_coms=${owl_data[3]["owl_coms"]}]`;
-    const $target = $(selector);
+//     const selector = `[owl_coms=${owl_data[3]["owl_coms"]}]`;
+//     const $target = $(selector);
 
-    if ($target.length === 0) {
-        console.log("❌ Target not found");
-        return;
-    }
+//     if ($target.length === 0) {
+//         console.log("❌ Target not found");
+//         return;
+//     }
 
-    // ✅ CLICK
-    $target.click();
-    startObserving();
+//     // ✅ CLICK
+//     $target.click();
+//     startObserving();
 
-    console.log("Clicked:", owl_data[3]["owl_coms"]);
-    console.log("|+========================================================+|");
+//     console.log("Clicked:", owl_data[3]["owl_coms"]);
+//     console.log("|+========================================================+|");
 
-    // ✅ WAIT COMMENT BOX
-    waitForCommentBox((commentBox) => {
-      const $textarea = $('textarea[aria-label="Reply"]');
+//     // ✅ WAIT COMMENT BOX
+//     waitForCommentBox((commentBox) => {
+//       const $textarea = $('textarea[aria-label="Reply"]');
 
-        // ✅ TYPE COMMENT
-        let comms = "nice onesss";
-        commentBox.value = comms;
-        commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-        console.log("✅ Comment set!");
+//         // ✅ TYPE COMMENT
+//         let comms = "nice onesss";
+//         commentBox.value = comms;
+//         commentBox.dispatchEvent(new Event('input', { bubbles: true }));
+//         console.log("✅ Comment set!");
 
-        if ($textarea.attr('owl_comment')){
-          $("[owl_clsoe_com]").click()
-        }
+//         if ($textarea.attr('owl_comment')){
+//           $("[owl_clsoe_com]").click()
+//         }
 
-        // OPTIONAL SEND
-        // ✅ WAIT MESSAGE DATA
-        waitForMessage((msg) => {
+//         // OPTIONAL SEND
+//         // ✅ WAIT MESSAGE DATA
+//         waitForMessage((msg) => {
 
-                console.log("=======================================================");
-                msg.forEach(x => {
-                    if (x.user === username && x.comment === comms) {
-                        console.log("⚠️ cancel (duplicate)");
-                        $("[owl_clsoe_com]").click()
-                    }else{
-                      $("[owl_sent]").click();
+//                 console.log("=======================================================");
+//                 msg.forEach(x => {
+//                     if (x.user === username && x.comment === comms) {
+//                         console.log("⚠️ cancel (duplicate)");
+//                         $("[owl_clsoe_com]").click()
+//                     }else{
+//                       $("[owl_sent]").click();
 
-                      setTimeout(() => {
-                        $("[owl_clsoe_com]").click()
-                      }, 1900);
-                    }
-                });
+//                       setTimeout(() => {
+//                         $("[owl_clsoe_com]").click()
+//                       }, 1900);
+//                     }
+//                 });
             
-            console.log("=======================================================");
+//             console.log("=======================================================");
 
-            // ✅ CLEANUP AFTER SUCCESS
-            if (window.commentObserver) {
-                window.commentObserver.disconnect();
-                window.commentObserver = null;
+//             // ✅ CLEANUP AFTER SUCCESS
+//             if (window.commentObserver) {
+//                 window.commentObserver.disconnect();
+//                 window.commentObserver = null;
+//             }
+
+//         });
+
+//     });
+
+// }, 5000);
+
+
+
+
+
+let countSelect = 0;
+let isRunning = false;
+let perPostCounter = 0
+
+function wait(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function openerComm(delayTime = 2000, isLoop = true){
+  
+  if(isRunning) return;
+  isRunning = true;
+
+  if (!owl_data || owl_data.length === 0) {
+    console.warn("⚠️ owl_data is empty or undefined");
+    isRunning = false;
+    return;
+  }
+
+  try {
+    while(isLoop && countSelect < owl_data.length){
+      $("[owl_clsoe_com]").click()
+      const selector = `[owl_coms=${owl_data[countSelect]["owl_coms"]}]`;
+      const $target = $(selector);
+
+      console.log("🔍 Trying:", selector);
+
+      if ($target.length === 0) {
+        console.log("❌ Not found:", selector);
+        countSelect++;
+        continue;
+      }
+
+      await wait(delayTime);
+
+      $target.click();
+      console.log("✅ Clicked:", selector);
+
+      countSelect++;
+
+      await wait(delayTime);
+    }
+  } catch(err) {
+    console.error("💥 Error:", err);
+  } finally {
+    isRunning = false;
+  }
+}
+
+function delayOppner(params) {
+  $("[owl_clsoe_com]").click()
+  
+  // Check if attribute EXISTS
+  startObserving();
+
+    setTimeout(() => {
+      
+        const selector = `[owl_coms=${owl_data[countSelect]["owl_coms"]}]`;
+        const $target = $(selector);
+        $target.click()
+       
+        countSelect++
+    }, params * 1000);
+}
+
+
+// function perPostChecker(){
+//         if (percount <= perPostCounter) {
+//             alert("okay na")
+//             return;
+//         }
+// }
+// function percountSetup(params) {
+//   percount = params
+// }percountSetup(3)
+
+
+
+
+function timer(params) {
+  
+}
+
+
+let clickPerActionCount = 0;
+let clickPerActionTarget = 0;
+let isProceeding = false;
+
+let timerBreakReps = 0;
+let timerBreakTarget = 0;
+let timerBreakDelay = 0;
+let timerBreakRefresh = false;
+
+ 
+
+// =========================
+// 💾 SAVE / LOAD STATE
+// =========================
+function saveState() {
+  localStorage.setItem("auto_state", JSON.stringify({
+    clickPerActionTarget,
+    clickPerActionCount,
+    timerBreakReps,
+    timerBreakTarget,
+    timerBreakDelay,
+    timerBreakRefresh,
+    comment,
+    lastBreakTime: Date.now()
+  }));
+}
+
+function loadState() {
+  const saved = localStorage.getItem("auto_state");
+  if (!saved) return false;
+
+  const state = JSON.parse(saved);
+
+  clickPerActionTarget = state.clickPerActionTarget;
+  clickPerActionCount = state.clickPerActionCount;
+  timerBreakReps = state.timerBreakReps;
+  timerBreakTarget = state.timerBreakTarget;
+  timerBreakDelay = state.timerBreakDelay;
+  timerBreakRefresh = state.timerBreakRefresh;
+  comment = state.comment;
+
+  console.log("♻️ State restored:", state);
+
+  // resume with remaining delay
+  const elapsed = Date.now() - (state.lastBreakTime || 0);
+  const remaining = timerBreakDelay - elapsed;
+
+  setTimeout(() => {
+    triggerNext("resume after refresh");
+  }, Math.max(0, remaining));
+
+  localStorage.removeItem("auto_state");
+  return true;
+}
+
+// =========================
+// ⏱ TIMER BREAK
+// =========================
+function timerBreak(delay, reps, refresh) {
+  timerBreakDelay = delay;
+  timerBreakTarget = reps;
+  timerBreakRefresh = refresh;
+  timerBreakReps = 0;
+}
+
+function onClickPerActionDone() {
+  if (timerBreakTarget === 0) return;
+
+  timerBreakReps++;
+  console.log(`⏱️ Break started. Rep ${timerBreakReps} / ${timerBreakTarget}`);
+
+  if (timerBreakReps >= timerBreakTarget) {
+    console.log(`🏁 timerBreak done!`);
+    timerBreakTarget = 0;
+    timerBreakReps = 0;
+    return;
+  }
+
+  console.log(`😴 Waiting ${timerBreakDelay / 1000}s...`);
+
+  setTimeout(() => {
+    if (timerBreakRefresh) {
+      console.log("🔄 Refreshing with saved state...");
+      saveState();
+      location.reload();
+    } else {
+      clickPerActionCount = 0;
+      triggerNext("timerBreak restart");
+    }
+  }, timerBreakDelay);
+}
+
+// =========================
+// ▶️ ACTION CONTROL
+// =========================
+function clickPerAction(n) {
+  clickPerActionTarget = n;
+  clickPerActionCount = 0;
+  triggerNext("start");
+}
+
+function commnet(params) {
+  comment = params;
+}
+
+// =========================
+// 🔁 MAIN LOOP
+// =========================
+function triggerNext(reason = "") {
+  if (isProceeding) return;
+
+  if (clickPerActionTarget > 0 && clickPerActionCount >= clickPerActionTarget) {
+    console.log(`🏁 Done ${clickPerActionTarget}`);
+    isProceeding = false;
+    clickonce = false;
+    onClickPerActionDone();
+    return;
+  }
+
+  isProceeding = true;
+  clickonce = false;
+
+  console.log(`➡️ ${reason} | ${clickPerActionCount + 1}/${clickPerActionTarget}`);
+
+  setTimeout(() => {
+    isProceeding = false;
+    $("[openthis]").click();
+  }, 2000);
+}
+
+// =========================
+// 🧠 START BUTTON
+// =========================
+$(document).on("click", "[starts]", function(){
+  setTimeout(() => {
+
+    // if naa saved state → resume
+    if (loadState()) return;
+
+    clickPerAction(3);
+    timerBreak(10000, 2, true);
+    commnet("nice onesss");
+
+  }, 3000);
+});
+
+// =========================
+// 💬 COMMENT FLOW
+// =========================
+$(document).on("click", "[openthis]", function () {
+  if (clickonce) return;
+
+  clickonce = true;
+  delayOppner(1);
+
+  setTimeout(() => {
+    try {
+      insfections();
+
+      waitForCommentBox((box) => {
+        box.value = comment;
+        box.dispatchEvent(new Event('input', { bubbles: true }));
+
+        waitForMessage((msg) => {
+          let success = true;
+
+          const found = msg.some(x => {
+            if (x.user === username && x.comment === comment) {
+              console.log("🔄 Retry...");
+              clickonce = false;
+              isProceeding = false;
+
+              setTimeout(() => {
+                $("[openthis]").click();
+              }, 2000);
+
+              success = false;
+              return true;
             }
+          });
 
+          if (success && !found) {
+            clickPerActionCount++;
+            console.log(`✅ Progress: ${clickPerActionCount}/${clickPerActionTarget}`);
+          }
+
+          if (window.commentObserver) {
+            window.commentObserver.disconnect();
+            window.commentObserver = null;
+          }
+
+          if (success) triggerNext("success");
         });
 
-    });
+      });
 
-}, 5000);
+    } catch (e) {
+      console.error("❌ Error:", e);
+      clickonce = false;
+      isProceeding = false;
+    }
+  }, 1000);
+});
+
+// =========================
+// 🚫 RESTRICT CHECK
+// =========================
+function insfections() {
+  startObserve();
+}
+
+function startObserve() {
+  if (window.restrictObserver) {
+    window.restrictObserver.disconnect();
+  }
+
+  window.restrictObserver = new MutationObserver(() => {
+    const el = document.querySelector("[sirado]");
+
+    if (el && el.innerText.trim() !== "") {
+      console.log("🚫 Restricted - skip");
+
+      window.restrictObserver.disconnect();
+
+      setTimeout(() => {
+        triggerNext("restricted skip");
+      }, 1000);
+    }
+  });
+
+  window.restrictObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  setTimeout(() => {
+    if (window.restrictObserver) {
+      window.restrictObserver.disconnect();
+      triggerNext("observer timeout");
+    }
+  }, 10000);
+}
 
 
- 
 
 
+    // if ($target.is('[sirado]')) {
 
 
-
-
-
- 
-
-// // startObserving
 
 // gusto nako baguhon ni buhatan nako function 
 // atoCom("NICE", 5, 2, 5000)
