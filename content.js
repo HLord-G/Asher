@@ -537,18 +537,20 @@ function delayOppner(params) {
 function timer(params) {
   
 }
+// =========================
+// 🌐 GLOBALS
+// =========================
+// let clickonce    = false;
+// let comment      = "";
 
-
-let clickPerActionCount = 0;
+let clickPerActionCount  = 0;
 let clickPerActionTarget = 0;
-let isProceeding = false;
+let isProceeding         = false;
 
-let timerBreakReps = 0;
-let timerBreakTarget = 0;
-let timerBreakDelay = 0;
+let timerBreakReps    = 0;
+let timerBreakTarget  = 0;
+let timerBreakDelay   = 0;
 let timerBreakRefresh = false;
-
- 
 
 // =========================
 // 💾 SAVE / LOAD STATE
@@ -556,7 +558,6 @@ let timerBreakRefresh = false;
 function saveState() {
   localStorage.setItem("auto_state", JSON.stringify({
     clickPerActionTarget,
-    clickPerActionCount,
     timerBreakReps,
     timerBreakTarget,
     timerBreakDelay,
@@ -570,27 +571,32 @@ function loadState() {
   const saved = localStorage.getItem("auto_state");
   if (!saved) return false;
 
+  localStorage.removeItem("auto_state");
+
   const state = JSON.parse(saved);
 
   clickPerActionTarget = state.clickPerActionTarget;
-  clickPerActionCount = state.clickPerActionCount;
-  timerBreakReps = state.timerBreakReps;
-  timerBreakTarget = state.timerBreakTarget;
-  timerBreakDelay = state.timerBreakDelay;
-  timerBreakRefresh = state.timerBreakRefresh;
-  comment = state.comment;
+  clickPerActionCount  = 0;
+  timerBreakReps       = state.timerBreakReps;
+  timerBreakTarget     = state.timerBreakTarget;
+  timerBreakDelay      = state.timerBreakDelay;
+  timerBreakRefresh    = state.timerBreakRefresh;
+  comment              = state.comment;
 
-  console.log("♻️ State restored:", state);
+  clickonce    = false;
+  isProceeding = false;
 
-  // resume with remaining delay
-  const elapsed = Date.now() - (state.lastBreakTime || 0);
-  const remaining = timerBreakDelay - elapsed;
+  console.log(`♻️ Resumed | rep ${timerBreakReps}/${timerBreakTarget} | posts reset to 0/${clickPerActionTarget}`);
+
+  const elapsed   = Date.now() - (state.lastBreakTime || 0);
+  const remaining = Math.max(0, timerBreakDelay - elapsed);
+
+  console.log(`⏳ Continuing in ${remaining / 1000}s...`);
 
   setTimeout(() => {
     triggerNext("resume after refresh");
-  }, Math.max(0, remaining));
+  }, remaining);
 
-  localStorage.removeItem("auto_state");
   return true;
 }
 
@@ -598,35 +604,33 @@ function loadState() {
 // ⏱ TIMER BREAK
 // =========================
 function timerBreak(delay, reps, refresh) {
-  timerBreakDelay = delay;
-  timerBreakTarget = reps;
+  timerBreakDelay   = delay;
+  timerBreakTarget  = reps;
   timerBreakRefresh = refresh;
-  timerBreakReps = 0;
+  timerBreakReps    = 0;
 }
 
 function onClickPerActionDone() {
   if (timerBreakTarget === 0) return;
 
   timerBreakReps++;
-  console.log(`⏱️ Break started. Rep ${timerBreakReps} / ${timerBreakTarget}`);
+  console.log(`⏱️ Rep ${timerBreakReps}/${timerBreakTarget} done. Waiting ${timerBreakDelay / 1000}s...`);
 
   if (timerBreakReps >= timerBreakTarget) {
-    console.log(`🏁 timerBreak done!`);
+    console.log(`🏁 All reps done!`);
     timerBreakTarget = 0;
-    timerBreakReps = 0;
+    timerBreakReps   = 0;
     return;
   }
 
-  console.log(`😴 Waiting ${timerBreakDelay / 1000}s...`);
-
   setTimeout(() => {
     if (timerBreakRefresh) {
-      console.log("🔄 Refreshing with saved state...");
+      console.log("🔄 Saving state then refreshing...");
       saveState();
       location.reload();
     } else {
       clickPerActionCount = 0;
-      triggerNext("timerBreak restart");
+      triggerNext("timerBreak next rep");
     }
   }, timerBreakDelay);
 }
@@ -636,7 +640,7 @@ function onClickPerActionDone() {
 // =========================
 function clickPerAction(n) {
   clickPerActionTarget = n;
-  clickPerActionCount = 0;
+  clickPerActionCount  = 0;
   triggerNext("start");
 }
 
@@ -651,17 +655,17 @@ function triggerNext(reason = "") {
   if (isProceeding) return;
 
   if (clickPerActionTarget > 0 && clickPerActionCount >= clickPerActionTarget) {
-    console.log(`🏁 Done ${clickPerActionTarget}`);
+    console.log(`✅ All ${clickPerActionTarget} posts done for this rep.`);
     isProceeding = false;
-    clickonce = false;
+    clickonce    = false;
     onClickPerActionDone();
     return;
   }
 
   isProceeding = true;
-  clickonce = false;
+  clickonce    = false;
 
-  console.log(`➡️ ${reason} | ${clickPerActionCount + 1}/${clickPerActionTarget}`);
+  console.log(`➡️ ${reason} | post ${clickPerActionCount + 1}/${clickPerActionTarget}`);
 
   setTimeout(() => {
     isProceeding = false;
@@ -670,18 +674,24 @@ function triggerNext(reason = "") {
 }
 
 // =========================
+// 🧠 AUTO-RESUME ON PAGE LOAD
+// =========================
+$(document).ready(function () {
+  setTimeout(() => {
+    if (localStorage.getItem("auto_state")) {
+      loadState();
+    }
+  }, 1500);
+});
+
+// =========================
 // 🧠 START BUTTON
 // =========================
-$(document).on("click", "[starts]", function(){
+$(document).on("click", "[starts]", function () {
   setTimeout(() => {
-
-    // if naa saved state → resume
-    if (loadState()) return;
-
     clickPerAction(3);
     timerBreak(10000, 2, true);
     commnet("nice onesss");
-
   }, 3000);
 });
 
@@ -707,8 +717,8 @@ $(document).on("click", "[openthis]", function () {
 
           const found = msg.some(x => {
             if (x.user === username && x.comment === comment) {
-              console.log("🔄 Retry...");
-              clickonce = false;
+              console.log("🔄 Duplicate detected, retrying...");
+              clickonce    = false;
               isProceeding = false;
 
               setTimeout(() => {
@@ -722,7 +732,7 @@ $(document).on("click", "[openthis]", function () {
 
           if (success && !found) {
             clickPerActionCount++;
-            console.log(`✅ Progress: ${clickPerActionCount}/${clickPerActionTarget}`);
+            console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
           }
 
           if (window.commentObserver) {
@@ -732,12 +742,11 @@ $(document).on("click", "[openthis]", function () {
 
           if (success) triggerNext("success");
         });
-
       });
 
     } catch (e) {
       console.error("❌ Error:", e);
-      clickonce = false;
+      clickonce    = false;
       isProceeding = false;
     }
   }, 1000);
@@ -760,7 +769,6 @@ function startObserve() {
 
     if (el && el.innerText.trim() !== "") {
       console.log("🚫 Restricted - skip");
-
       window.restrictObserver.disconnect();
 
       setTimeout(() => {
@@ -781,7 +789,6 @@ function startObserve() {
     }
   }, 10000);
 }
-
 
 
 
