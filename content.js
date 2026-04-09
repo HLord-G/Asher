@@ -533,19 +533,14 @@ function delayOppner(params) {
 
 
 
-
-function timer(params) {
-  
-}
-// =========================
+ // =========================
 // 🌐 GLOBALS
 // =========================
-// let clickonce    = false;
-// let comment      = "";
 
 let clickPerActionCount  = 0;
 let clickPerActionTarget = 0;
 let isProceeding         = false;
+let isWorking            = false; // ✅ FIX
 
 let timerBreakReps    = 0;
 let timerBreakTarget  = 0;
@@ -585,6 +580,7 @@ function loadState() {
 
   clickonce    = false;
   isProceeding = false;
+  isWorking    = false; // ✅ FIX
 
   console.log(`♻️ Resumed | rep ${timerBreakReps}/${timerBreakTarget} | posts reset to 0/${clickPerActionTarget}`);
 
@@ -652,7 +648,7 @@ function commnet(params) {
 // 🔁 MAIN LOOP
 // =========================
 function triggerNext(reason = "") {
-  if (isProceeding) return;
+  if (isProceeding || isWorking) return; // ✅ FIX
 
   if (clickPerActionTarget > 0 && clickPerActionCount >= clickPerActionTarget) {
     console.log(`✅ All ${clickPerActionTarget} posts done for this rep.`);
@@ -669,12 +665,13 @@ function triggerNext(reason = "") {
 
   setTimeout(() => {
     isProceeding = false;
+    isWorking = true; // ✅ LOCK
     $("[openthis]").click();
   }, 2000);
 }
 
 // =========================
-// 🧠 AUTO-RESUME ON PAGE LOAD
+// 🧠 AUTO-RESUME
 // =========================
 $(document).ready(function () {
   setTimeout(() => {
@@ -720,6 +717,7 @@ $(document).on("click", "[openthis]", function () {
               console.log("🔄 Duplicate detected, retrying...");
               clickonce    = false;
               isProceeding = false;
+              isWorking    = false; // ✅ FIX
 
               setTimeout(() => {
                 $("[openthis]").click();
@@ -740,6 +738,8 @@ $(document).on("click", "[openthis]", function () {
             window.commentObserver = null;
           }
 
+          isWorking = false; // ✅ RELEASE LOCK
+
           if (success) triggerNext("success");
         });
       });
@@ -748,6 +748,7 @@ $(document).on("click", "[openthis]", function () {
       console.error("❌ Error:", e);
       clickonce    = false;
       isProceeding = false;
+      isWorking    = false; // ✅ FIX
     }
   }, 1000);
 });
@@ -771,6 +772,8 @@ function startObserve() {
       console.log("🚫 Restricted - skip");
       window.restrictObserver.disconnect();
 
+      isWorking = false; // ✅ FIX
+
       setTimeout(() => {
         triggerNext("restricted skip");
       }, 1000);
@@ -785,11 +788,11 @@ function startObserve() {
   setTimeout(() => {
     if (window.restrictObserver) {
       window.restrictObserver.disconnect();
+      isWorking = false; // ✅ FIX
       triggerNext("observer timeout");
     }
   }, 10000);
 }
-
 
 
     // if ($target.is('[sirado]')) {
