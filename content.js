@@ -51,21 +51,72 @@ function scrollToBottom() {
 
 
 $("body").append(`
+
+
+
   <div style="
     position:fixed;
-    bottom:43%;
-    left:3%;
-    background:#000;
-    color:#fff;
+    bottom:20%;
+    right:0%;
     padding:10px;
     border-radius:8px;
     z-index:9999;
   ">
-    
-    <button openthis style="position:fixed; left:-400%;"> opeen </button>
- <button starts> start </button>
+
+<button id="menuBtn"
+  style="padding:6px 10px; background:#7b2cbfff; color:#fff; border:none; cursor:pointer;">
+  MENU
+</button>
+
+<div id="mainBox" style="width:210px; background:#10002bff; padding:15px; border:1px solid white; border-radius:0px 0px 12px 12px; font-family:sans-serif; color:#fff;">
+
+  <div timers style="margin-bottom:10px;">
+    <label style="font-size:12px; color:#c77dffff;">Timer</label><br>
+    <select style="width:100%; padding:5px; background:#240046ff; color:#fff; border:none; border-radius:6px; margin-top:5px;">
+      <option value="hrs">hrs</option>
+      <option value="mints">mints</option>
+      <option value="sec">sec</option>
+    </select>
+    <input type="number" placeholder="Enter value"
+      style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
   </div>
+
+  <div post_selections style="margin-bottom:10px;">
+    <label style="font-size:12px; color:#c77dffff;">Post Count</label><br>
+    <input type="number" placeholder="How many posts"
+      style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
+  </div>
+
+  <div comment style="margin-bottom:10px;">
+    <label style="font-size:12px; color:#c77dffff;">Comment</label><br>
+   <textarea placeholder="Write comment..."
+  style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px; resize:vertical;"></textarea>
+  </div>
+
+  <div refresh style="margin-bottom:10px; font-size:12px;">
+    <span style="color:#c77dffff;">Refresh</span>
+    <input type="checkbox" style="margin-left:5px;">
+  </div>
+
+  <button starts
+    style="width:100%; padding:8px; background:#7b2cbfff; border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer;">
+    START
+  </button>
+
+</div>
+
+
+<button openthis style="position:fixed; left:-400%;"> opeen </button>
+</div>
+
+
 `)
+
+
+$(document).on("click", "#menuBtn", function() {
+  $("#mainBox").toggle();
+});
+
 
 // ==========================
 // GENERATE UNIQUE ID
@@ -547,6 +598,25 @@ let timerBreakTarget  = 0;
 let timerBreakDelay   = 0;
 let timerBreakRefresh = false;
 
+
+// =========================
+// Milisecond Converter
+// =========================
+function timerConverter_mil({ status, timer }) {
+    if (!status || !timer) return 0;
+
+    const timeMap = {
+        hrs: 3600000,   // 1 hour = 3600000 ms
+        mins: 60000,    // 1 minute = 60000 ms
+        sec: 1000       // 1 second = 1000 ms
+    };
+
+    return (timeMap[status] || 0) * timer;
+}
+
+
+
+
 // =========================
 // 💾 SAVE / LOAD STATE
 // =========================
@@ -687,9 +757,12 @@ $(document).ready(function () {
 $(document).on("click", "[starts]", function () {
   setTimeout(() => {
     clickPerAction(3);
-    timerBreak(10000, 2, true);
+    timerBreak(timerConverter_mil({
+      status:"sec",
+      timer:3
+    }), 2, true);
     commnet("nice onesss");
-  }, 3000);
+  }, 1000);
 });
 
 // =========================
@@ -701,57 +774,91 @@ $(document).on("click", "[openthis]", function () {
   clickonce = true;
   delayOppner(1);
 
-  setTimeout(() => {
-    try {
-      insfections();
+setTimeout(() => {
+  try {
+    insfections();
 
-      waitForCommentBox((box) => {
-        box.value = comment;
-        box.dispatchEvent(new Event('input', { bubbles: true }));
+    waitForCommentBox((box) => {
 
-        waitForMessage((msg) => {
-          let success = true;
+      // ✅ SET VALUE (React-safe)
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        "value"
+      ).set;
 
-          const found = msg.some(x => {
-            if (x.user === username && x.comment === comment) {
-              console.log("🔄 Duplicate detected, retrying...");
-              clickonce    = false;
-              isProceeding = false;
-              isWorking    = false; // ✅ FIX
+      nativeSetter.call(box, comment);
+      box.dispatchEvent(new Event("input", { bubbles: true }));
 
-              setTimeout(() => {
-                $("[openthis]").click();
-              }, 2000);
+      waitForMessage((msg) => {
+        let success = true;
 
-              success = false;
-              return true;
-            }
-          });
+        const found = msg.some(x => {
+          if (x.user === username && x.comment === comment) {
+            console.log("🔄 Duplicate detected, clearing message...");
 
-          if (success && !found) {
-            clickPerActionCount++;
-            console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
+            clickonce    = false;
+            isProceeding = false;
+            isWorking    = false;
+
+            // ✅ CLEAR BOX (FIXED)
+            clearMessageBox(box);
+
+            setTimeout(() => {
+              $("[openthis]").click();
+            }, 2000);
+
+            success = false;
+            return true;
           }
-
-          if (window.commentObserver) {
-            window.commentObserver.disconnect();
-            window.commentObserver = null;
-          }
-
-          isWorking = false; // ✅ RELEASE LOCK
-
-          if (success) triggerNext("success");
         });
+
+        // ✅ SUCCESS CASE
+        if (success && !found) {
+          clickPerActionCount++;
+          console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
+        }
+
+        // ✅ CLEAN OBSERVER
+        if (window.commentObserver) {
+          window.commentObserver.disconnect();
+          window.commentObserver = null;
+        }
+
+        isWorking = false; // release lock
+
+        if (success) triggerNext("success");
       });
 
-    } catch (e) {
-      console.error("❌ Error:", e);
-      clickonce    = false;
-      isProceeding = false;
-      isWorking    = false; // ✅ FIX
-    }
-  }, 1000);
+    });
+
+  } catch (e) {
+    console.error("❌ Error:", e);
+
+    clickonce    = false;
+    isProceeding = false;
+    isWorking    = false;
+  }
+}, 1000);
 });
+
+
+function clearMessageBox(box) {
+  if (!box) return;
+
+  const nativeSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLTextAreaElement.prototype,
+    "value"
+  ).set;
+
+  nativeSetter.call(box, "");
+
+  box.dispatchEvent(new Event("input", { bubbles: true }));
+
+  // optional but helps on some sites
+  box.blur();
+  box.focus();
+}
+
 
 // =========================
 // 🚫 RESTRICT CHECK
