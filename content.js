@@ -61,6 +61,11 @@ $("body").append(`
     padding:10px;
     border-radius:8px;
     z-index:9999;
+    display:flex;
+    justify-items: start;
+    flex-flow:row;
+    flex-flow: column;
+    align-items: end;
   ">
 
 <button id="menuBtn"
@@ -68,34 +73,40 @@ $("body").append(`
      <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor"><path d="M440-280h80l12-60q12-5 22.5-10.5T576-364l58 18 40-68-46-40q2-14 2-26t-2-26l46-40-40-68-58 18q-11-8-21.5-13.5T532-620l-12-60h-80l-12 60q-12 5-22.5 10.5T384-596l-58-18-40 68 46 40q-2 14-2 26t2 26l-46 40 40 68 58-18q11 8 21.5 13.5T428-340l12 60Zm-16.5-143.5Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/></svg>
 </button>
 
-<div id="mainBox" style="width:210px; background:#10002bff; padding:15px; border:1px solid white; border-radius:0px 0px 12px 12px; font-family:sans-serif; color:#fff;">
+<div id="mainBox" style="width:210px; background:#10002bff; padding:15px; border:1px solid white; border-radius:12px 0px 12px 12px; font-family:sans-serif; color:#fff;">
 
   <div timers style="margin-bottom:10px;">
-    <label style="font-size:12px; color:#c77dffff;">Timer</label><br>
-    <select style="width:100%; padding:5px; background:#240046ff; color:#fff; border:none; border-radius:6px; margin-top:5px;">
+    <label style="font-size:12px; color:#c77dffff;">Break</label><br>
+    <select mints style="width:100%; padding:5px; background:#240046ff; color:#fff; border:none; border-radius:6px; margin-top:5px;">
       <option value="hrs">hrs</option>
-      <option value="mints">mints</option>
+      <option value="mins">mins</option>
       <option value="sec">sec</option>
     </select>
-    <input type="number" placeholder="Enter value"
+    <input type="number" time placeholder="Enter value"
       style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
   </div>
 
   <div post_selections style="margin-bottom:10px;">
     <label style="font-size:12px; color:#c77dffff;">Post Count</label><br>
-    <input type="number" placeholder="How many posts"
+    <input type="number" manypost placeholder="How many posts"
+      style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
+  </div>
+
+    <div post_selections style="margin-bottom:10px;">
+    <label style="font-size:12px; color:#c77dffff;">Loop</label><br>
+    <input type="number" loops placeholder="How many Loops"
       style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
   </div>
 
   <div comment style="margin-bottom:10px;">
     <label style="font-size:12px; color:#c77dffff;">Comment</label><br>
-   <textarea placeholder="Write comment..."
-  style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px; resize:vertical;"></textarea>
+   <textarea comments placeholder="Write comment..."
+  style="width:100%; margin-top:5px; height:130px; font-size:13px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px; resize:vertical;"></textarea>
   </div>
 
   <div refresh style="margin-bottom:10px; font-size:12px;">
     <span style="color:#c77dffff;">Refresh</span>
-    <input type="checkbox" style="margin-left:5px;">
+    <input refresh_status type="checkbox" style="margin-left:5px;">
   </div>
 
   <button starts
@@ -116,6 +127,88 @@ $("body").append(`
 $(document).on("click", "#menuBtn", function() {
   $("#mainBox").toggle();
 });
+
+// PARA DILI MA WALA KUNG EH REFRESH
+$(document).ready(function () {
+
+    const STORAGE_KEY = "myExtensionData";
+
+    // 🔹 SAVE
+    function saveData() {
+        const data = {
+            mints: $('[mints]').val(),
+            time: $('[time]').val(),
+            manypost: $('[manypost]').val(),
+            loops: $('[loops]').val(), // ✅ NEW
+            comments: $('[comments]').val(),
+            refresh_status: $('[refresh_status]').is(':checked')
+        };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        console.log("AUTO SAVED", data);
+    }
+
+    // 🔹 LOAD
+    function loadData() {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+
+        $('[mints]').val(data.mints || '');
+        $('[time]').val(data.time || '');
+        $('[manypost]').val(data.manypost || '');
+        $('[loops]').val(data.loops || ''); // ✅ NEW
+        $('[comments]').val(data.comments || '');
+        $('[refresh_status]').prop('checked', data.refresh_status || false);
+    }
+
+    // 🔥 AUTO SAVE (ALL FIELDS APIL LOOPS)
+    $(document).on(
+        'input change',
+        '[mints], [time], [manypost], [loops], [comments], [refresh_status]',
+        function () {
+            autoSave();
+        }
+    );
+
+    // 🔥 MUTATION OBSERVER (para bisan gi edit via JS)
+    const observer = new MutationObserver(() => {
+        autoSave();
+    });
+
+    observer.observe(document.getElementById('mainBox'), {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        characterData: true
+    });
+
+    // 🔥 DEBOUNCE (para dili spam save)
+    let timeout;
+    function autoSave() {
+        clearTimeout(timeout);
+        timeout = setTimeout(saveData, 300);
+    }
+
+    // 🔹 INIT
+    loadData();
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // ==========================
@@ -597,6 +690,7 @@ let timerBreakReps    = 0;
 let timerBreakTarget  = 0;
 let timerBreakDelay   = 0;
 let timerBreakRefresh = false;
+let sent_once = false;
 
 
 // =========================
@@ -755,13 +849,24 @@ $(document).ready(function () {
 // 🧠 START BUTTON
 // =========================
 $(document).on("click", "[starts]", function () {
+
+    const data_comment_event = {
+            mints: $('[mints]').val(),
+            time: $('[time]').val(),
+            manypost: $('[manypost]').val(),
+            loops: $('[loops]').val(), // ✅ NEW
+            comments: $('[comments]').val(),
+            refresh_status: $('[refresh_status]').is(':checked')
+        };
+
+
   setTimeout(() => {
-    clickPerAction(3);
+    clickPerAction(data_comment_event["manypost"]);
     timerBreak(timerConverter_mil({
-      status:"sec",
-      timer:3
-    }), 2, true);
-    commnet("nice onesss");
+      status:`${data_comment_event["mints"]}`,
+      timer:Number(data_comment_event["time"])
+    }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"]);
+    commnet(`${data_comment_event["comments"]}`);
   }, 1000);
 });
 
@@ -816,6 +921,18 @@ setTimeout(() => {
         if (success && !found) {
           clickPerActionCount++;
           console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
+          // sender
+          // ma sent ang message.
+          if (!sent_once) {
+              sent_once = true
+            $("[owl_sent]").click()
+
+            setTimeout(() => {
+              sent_once = false
+            }, 600);
+          }
+          
+
         }
 
         // ✅ CLEAN OBSERVER
