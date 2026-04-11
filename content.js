@@ -109,10 +109,26 @@ $("body").append(`
     <input refresh_status type="checkbox" style="margin-left:5px;">
   </div>
 
+  
+<div style="
+  width:100%;
+  padding:10px;
+  display:flex;
+  justify-content:center;
+  flex-direction:row;
+  align-items:center;
+  gap:10px;
+">
   <button starts
-    style="width:100%; padding:8px; background:#7b2cbfff; border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer;">
+    style="flex:1; padding:8px; background:#7b2cbf; border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer;">
     START
   </button>
+
+  <button stopoperation
+    style="width:30%; padding:8px; background:red; border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer;">
+    STOP
+  </button>
+</div>
 
 </div>
 
@@ -821,37 +837,45 @@ function commnet(params) {
 // 🔁 MAIN LOOP
 // =========================
 function triggerNext(reason = "") {
-  if (isProceeding || isWorking) return;
 
-  if (clickPerActionTarget > 0 && clickPerActionCount >= clickPerActionTarget) {
-    console.log(`✅ All ${clickPerActionTarget} posts done for this rep.`);
+  // 🚫 HARD STOP
+  if (clickPerActionCount >= clickPerActionTarget) {
+    console.log(`✅ LIMIT REACHED (${clickPerActionTarget})`);
     isProceeding = false;
-    clickonce    = false;
+    isWorking = false;
+    clickonce = false;
     onClickPerActionDone();
-    breakerRunner()
     return;
   }
 
+  // 🚫 BLOCK kung busy
+  if (isProceeding || isWorking) return;
+
   isProceeding = true;
-  clickonce    = false;
+  clickonce = false;
 
   console.log(`➡️ ${reason} | post ${clickPerActionCount + 1}/${clickPerActionTarget}`);
 
   setTimeout(() => {
-    // ✅ FIX: Double-check BEFORE clicking
+
+    // 🔥 DOUBLE CHECK (very important)
     if (clickPerActionCount >= clickPerActionTarget) {
+      console.log("⛔ prevented extra click");
       isProceeding = false;
       return;
     }
 
     isProceeding = false;
     isWorking = true;
-    $("[openthis]").click();
+
+    // ✅ SINGLE EXECUTION
+    $("[openthis]").first().click();
+
   }, 2000);
 }
 
 // =========================
-// 🧠 AUTO-RESUME
+//  AUTO-RESUME
 // =========================
 // $(document).ready(function () {
 //   setTimeout(() => {
@@ -883,7 +907,7 @@ $(document).ready(function () {
 
 
 // =========================
-// 🧠 START BUTTON
+//  START BUTTON
 // =========================
 $(document).on("click", "[starts]", function () {
   const loopsValss = $('[loops]').val();
@@ -898,32 +922,38 @@ $(document).on("click", "[starts]", function () {
         };
 
 
-
-
-    if (loopsValss || loopsValss.trim() === "" || Number(loopsValss) === 0) {
-      setTimeout(() => {
-        // timerBreak(timerConverter_mil({
-        //   status:`${data_comment_event["mints"]}`,
-        //   timer:Number(data_comment_event["time"])
-        // }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"]);
-    
-        breakerSet(timerConverter_mil({
-            status:`${data_comment_event["mints"]}`,
-            timer:Number(data_comment_event["time"])
-          }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"])
-    
-        commnet(`${data_comment_event["comments"]}`);
-        clickPerAction(data_comment_event["manypost"]); // ✅ Number() handled inside clickPerAction na
-    
-      }, 1000);
-      return
-    }else{
-      alert("Loop Are Empty")
+    if (!loopsValss || loopsValss.trim() === "" || Number(loopsValss) === 0) {
+      alert("Loop Are Empty");
+      return;
     }
+    
+    setTimeout(() => {
+      breakerSet(
+        timerConverter_mil({
+          status: `${data_comment_event["mints"]}`,
+          timer: Number(data_comment_event["time"])
+        }),
+        Number(data_comment_event["loops"]),
+        data_comment_event["refresh_status"]
+      );
+    
+      commnet(`${data_comment_event["comments"]}`);
+      clickPerAction(data_comment_event["manypost"]);
+    
+    }, 1000);
 });
 
+
 // =========================
-// 💬 COMMENT FLOW
+//  STOP BUTTON
+// =========================
+$(document).on("click", "[stopoperation]", function(){
+    breakerStop()
+    clickPerActionStop()
+})
+
+// =========================
+//  COMMENT FLOW
 // =========================
 $(document).on("click", "[openthis]", function () {
   if (clickonce) return;
@@ -949,7 +979,7 @@ setTimeout(() => {
         let success = true;
 
         const found = msg.some(x => {
-          if (x.user === username && x.comment === comment) {
+          if (x.comment === comment) {
             console.log("🔄 Duplicate detected, clearing message...");
 
             clickonce    = false;
@@ -1020,7 +1050,7 @@ function clearMessageBox(box) {
 
 
 // =========================
-// 🚫 RESTRICT CHECK
+//  RESTRICT CHECK
 // =========================
 function insfections() {
   startObserve();
@@ -1216,4 +1246,32 @@ function breakerClear() {
   }
 
   console.log("breaker cleared.");
+}
+
+
+
+
+function clickPerActionStop() {
+  console.log("🛑 Stopping clickPerAction...");
+
+  // Reset all running states
+  clickPerActionTarget = 0;
+  clickPerActionCount  = 0;
+
+  isProceeding = false;
+  isWorking    = false;
+
+  clickonce = false;
+
+  // Stop breaker if running
+  timerBreakTarget = 0;
+  timerBreakReps   = 0;
+
+  // Clear pending timeout if any
+  if (breakerTimeout) {
+    clearTimeout(breakerTimeout);
+    breakerTimeout = null;
+  }
+
+  console.log("✅ Fully stopped.");
 }
