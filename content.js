@@ -837,40 +837,32 @@ function commnet(params) {
 // 🔁 MAIN LOOP
 // =========================
 function triggerNext(reason = "") {
+  if (isProceeding || isWorking) return;
 
-  // 🚫 HARD STOP
-  if (clickPerActionCount >= clickPerActionTarget) {
-    console.log(`✅ LIMIT REACHED (${clickPerActionTarget})`);
+  if (clickPerActionTarget > 0 && clickPerActionCount >= clickPerActionTarget) {
+    console.log(`✅ All ${clickPerActionTarget} posts done for this rep.`);
     isProceeding = false;
-    isWorking = false;
-    clickonce = false;
+    clickonce    = false;
     onClickPerActionDone();
+    breakerRunner()
     return;
   }
 
-  // 🚫 BLOCK kung busy
-  if (isProceeding || isWorking) return;
-
   isProceeding = true;
-  clickonce = false;
+  clickonce    = false;
 
   console.log(`➡️ ${reason} | post ${clickPerActionCount + 1}/${clickPerActionTarget}`);
 
   setTimeout(() => {
-
-    // 🔥 DOUBLE CHECK (very important)
+    // ✅ FIX: Double-check BEFORE clicking
     if (clickPerActionCount >= clickPerActionTarget) {
-      console.log("⛔ prevented extra click");
       isProceeding = false;
       return;
     }
 
     isProceeding = false;
     isWorking = true;
-
-    // ✅ SINGLE EXECUTION
-    $("[openthis]").first().click();
-
+    $("[openthis]").click();
   }, 2000);
 }
 
@@ -922,25 +914,26 @@ $(document).on("click", "[starts]", function () {
         };
 
 
-    if (!loopsValss || loopsValss.trim() === "" || Number(loopsValss) === 0) {
-      alert("Loop Are Empty");
-      return;
+    if (loopsValss || loopsValss.trim() === "" || Number(loopsValss) === 0) {
+      setTimeout(() => {
+        // timerBreak(timerConverter_mil({
+        //   status:`${data_comment_event["mints"]}`,
+        //   timer:Number(data_comment_event["time"])
+        // }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"]);
+    
+        breakerSet(timerConverter_mil({
+            status:`${data_comment_event["mints"]}`,
+            timer:Number(data_comment_event["time"])
+          }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"])
+    
+        commnet(`${data_comment_event["comments"]}`);
+        clickPerAction(data_comment_event["manypost"]); // ✅ Number() handled inside clickPerAction na
+    
+      }, 1000);
+      return
+    }else{
+      alert("Loop Are Empty")
     }
-    
-    setTimeout(() => {
-      breakerSet(
-        timerConverter_mil({
-          status: `${data_comment_event["mints"]}`,
-          timer: Number(data_comment_event["time"])
-        }),
-        Number(data_comment_event["loops"]),
-        data_comment_event["refresh_status"]
-      );
-    
-      commnet(`${data_comment_event["comments"]}`);
-      clickPerAction(data_comment_event["manypost"]);
-    
-    }, 1000);
 });
 
 
@@ -948,8 +941,8 @@ $(document).on("click", "[starts]", function () {
 //  STOP BUTTON
 // =========================
 $(document).on("click", "[stopoperation]", function(){
-    breakerStop()
-    clickPerActionStop()
+  breakerStop()
+  clickPerActionStop()
 })
 
 // =========================
