@@ -128,8 +128,7 @@ $(document).on("click", "#menuBtn", function() {
   $("#mainBox").toggle();
 });
 
-// PARA DILI MA WALA KUNG EH REFRESH
-$(document).ready(function () {
+
 
     const STORAGE_KEY = "myExtensionData";
 
@@ -190,8 +189,6 @@ $(document).ready(function () {
 
     // 🔹 INIT
     loadData();
-
-});
 
 
 
@@ -676,22 +673,25 @@ function delayOppner(params) {
 // }percountSetup(3)
 
 
-
- // =========================
+// =========================
 // 🌐 GLOBALS
 // =========================
 
 let clickPerActionCount  = 0;
 let clickPerActionTarget = 0;
 let isProceeding         = false;
-let isWorking            = false; // ✅ FIX
+let isWorking            = false;
 
 let timerBreakReps    = 0;
 let timerBreakTarget  = 0;
 let timerBreakDelay   = 0;
 let timerBreakRefresh = false;
 let sent_once = false;
+const BREAKER_CONFIG = "breaker_config";
+const BREAKER_STATE = "breaker_state";
+const BREAKER_STOP = "breaker_stop";
 
+let breakerTimeout = null;
 
 // =========================
 // Milisecond Converter
@@ -700,15 +700,13 @@ function timerConverter_mil({ status, timer }) {
     if (!status || !timer) return 0;
 
     const timeMap = {
-        hrs: 3600000,   // 1 hour = 3600000 ms
-        mins: 60000,    // 1 minute = 60000 ms
-        sec: 1000       // 1 second = 1000 ms
+        hrs: 3600000,
+        mins: 60000,
+        sec: 1000
     };
 
     return (timeMap[status] || 0) * timer;
 }
-
-
 
 
 // =========================
@@ -744,7 +742,7 @@ function loadState() {
 
   clickonce    = false;
   isProceeding = false;
-  isWorking    = false; // ✅ FIX
+  isWorking    = false;
 
   console.log(`♻️ Resumed | rep ${timerBreakReps}/${timerBreakTarget} | posts reset to 0/${clickPerActionTarget}`);
 
@@ -774,24 +772,35 @@ function onClickPerActionDone() {
   if (timerBreakTarget === 0) return;
 
   timerBreakReps++;
-  console.log(`⏱️ Rep ${timerBreakReps}/${timerBreakTarget} done. Waiting ${timerBreakDelay / 1000}s...`);
+
+ 
+  console.log(`✅ Loop ${timerBreakReps}/${timerBreakTarget} done`);
 
   if (timerBreakReps >= timerBreakTarget) {
-    console.log(`🏁 All reps done!`);
-    timerBreakTarget = 0;
-    timerBreakReps   = 0;
+    console.log("🏁 ALL LOOPS DONE");
+    console.log("done"); // ✅ HERE
     return;
   }
 
+  console.log(`⏳ Break for ${timerBreakDelay / 1000}s`);
+
   setTimeout(() => {
+
     if (timerBreakRefresh) {
-      console.log("🔄 Saving state then refreshing...");
+      console.log("🔄 Refreshing...");
       saveState();
       location.reload();
-    } else {
-      clickPerActionCount = 0;
-      triggerNext("timerBreak next rep");
+      return;
     }
+
+    clickPerActionCount = 0;
+    isProceeding = false;
+    isWorking = false;
+
+    console.log("🔁 Starting next loop...");
+
+    triggerNext("next loop");
+
   }, timerBreakDelay);
 }
 
@@ -799,7 +808,7 @@ function onClickPerActionDone() {
 // ▶️ ACTION CONTROL
 // =========================
 function clickPerAction(n) {
-  clickPerActionTarget = n;
+  clickPerActionTarget = Number(n); // ✅ FIX: convert to number
   clickPerActionCount  = 0;
   triggerNext("start");
 }
@@ -812,13 +821,14 @@ function commnet(params) {
 // 🔁 MAIN LOOP
 // =========================
 function triggerNext(reason = "") {
-  if (isProceeding || isWorking) return; // ✅ FIX
+  if (isProceeding || isWorking) return;
 
   if (clickPerActionTarget > 0 && clickPerActionCount >= clickPerActionTarget) {
     console.log(`✅ All ${clickPerActionTarget} posts done for this rep.`);
     isProceeding = false;
     clickonce    = false;
     onClickPerActionDone();
+    breakerRunner()
     return;
   }
 
@@ -828,8 +838,14 @@ function triggerNext(reason = "") {
   console.log(`➡️ ${reason} | post ${clickPerActionCount + 1}/${clickPerActionTarget}`);
 
   setTimeout(() => {
+    // ✅ FIX: Double-check BEFORE clicking
+    if (clickPerActionCount >= clickPerActionTarget) {
+      isProceeding = false;
+      return;
+    }
+
     isProceeding = false;
-    isWorking = true; // ✅ LOCK
+    isWorking = true;
     $("[openthis]").click();
   }, 2000);
 }
@@ -837,37 +853,73 @@ function triggerNext(reason = "") {
 // =========================
 // 🧠 AUTO-RESUME
 // =========================
-$(document).ready(function () {
+// $(document).ready(function () {
+//   setTimeout(() => {
+//     if (localStorage.getItem("auto_state")) {
+//       loadState();
+//     }
+//   }, 1500);
+// });
+function looperRun() {
+  const loopsVal = $('[loops]').val();
+  const isRefresh = $('[refresh_status]').is(':checked');
+
+  if (!loopsVal || loopsVal.trim() === "" || Number(loopsVal) <= 0) {
+    return;
+  }
+
+  if (!isRefresh) {
+    return;
+  }
+
   setTimeout(() => {
-    if (localStorage.getItem("auto_state")) {
-      loadState();
-    }
-  }, 1500);
+    $("[starts]").click();
+  }, 1000);
+}
+
+$(document).ready(function () {
+  looperRun()
 });
+
 
 // =========================
 // 🧠 START BUTTON
 // =========================
 $(document).on("click", "[starts]", function () {
+  const loopsValss = $('[loops]').val();
 
     const data_comment_event = {
             mints: $('[mints]').val(),
             time: $('[time]').val(),
             manypost: $('[manypost]').val(),
-            loops: $('[loops]').val(), // ✅ NEW
+            loops: $('[loops]').val(),
             comments: $('[comments]').val(),
             refresh_status: $('[refresh_status]').is(':checked')
         };
 
 
-  setTimeout(() => {
-    clickPerAction(data_comment_event["manypost"]);
-    timerBreak(timerConverter_mil({
-      status:`${data_comment_event["mints"]}`,
-      timer:Number(data_comment_event["time"])
-    }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"]);
-    commnet(`${data_comment_event["comments"]}`);
-  }, 1000);
+
+
+    if (loopsValss || loopsValss.trim() === "" || Number(loopsValss) === 0) {
+      setTimeout(() => {
+        // timerBreak(timerConverter_mil({
+        //   status:`${data_comment_event["mints"]}`,
+        //   timer:Number(data_comment_event["time"])
+        // }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"]);
+    
+        breakerSet(timerConverter_mil({
+            status:`${data_comment_event["mints"]}`,
+            timer:Number(data_comment_event["time"])
+          }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"])
+    
+        commnet(`${data_comment_event["comments"]}`);
+        clickPerAction(data_comment_event["manypost"]); // ✅ Number() handled inside clickPerAction na
+    
+      }, 1000);
+      return
+    }else{
+      alert("Loop Are Empty")
+    }
 });
 
 // =========================
@@ -885,7 +937,6 @@ setTimeout(() => {
 
     waitForCommentBox((box) => {
 
-      // ✅ SET VALUE (React-safe)
       const nativeSetter = Object.getOwnPropertyDescriptor(
         window.HTMLTextAreaElement.prototype,
         "value"
@@ -905,7 +956,6 @@ setTimeout(() => {
             isProceeding = false;
             isWorking    = false;
 
-            // ✅ CLEAR BOX (FIXED)
             clearMessageBox(box);
 
             setTimeout(() => {
@@ -917,31 +967,26 @@ setTimeout(() => {
           }
         });
 
-        // ✅ SUCCESS CASE
         if (success && !found) {
           clickPerActionCount++;
           console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
-          // sender
-          // ma sent ang message.
+
           if (!sent_once) {
-              sent_once = true
-            $("[owl_sent]").click()
+              sent_once = true;
+            $("[owl_sent]").click();
 
             setTimeout(() => {
-              sent_once = false
+              sent_once = false;
             }, 600);
           }
-          
-
         }
 
-        // ✅ CLEAN OBSERVER
         if (window.commentObserver) {
           window.commentObserver.disconnect();
           window.commentObserver = null;
         }
 
-        isWorking = false; // release lock
+        isWorking = false;
 
         if (success) triggerNext("success");
       });
@@ -968,10 +1013,7 @@ function clearMessageBox(box) {
   ).set;
 
   nativeSetter.call(box, "");
-
   box.dispatchEvent(new Event("input", { bubbles: true }));
-
-  // optional but helps on some sites
   box.blur();
   box.focus();
 }
@@ -996,7 +1038,7 @@ function startObserve() {
       console.log("🚫 Restricted - skip");
       window.restrictObserver.disconnect();
 
-      isWorking = false; // ✅ FIX
+      isWorking = false;
 
       setTimeout(() => {
         triggerNext("restricted skip");
@@ -1012,13 +1054,11 @@ function startObserve() {
   setTimeout(() => {
     if (window.restrictObserver) {
       window.restrictObserver.disconnect();
-      isWorking = false; // ✅ FIX
+      isWorking = false;
       triggerNext("observer timeout");
     }
   }, 10000);
 }
-
-
     // if ($target.is('[sirado]')) {
 
 
@@ -1063,3 +1103,117 @@ function startObserve() {
 // break 10sec
 
 // balik balik lang hantud
+
+
+
+
+
+
+// SET CONFIG
+function breakerSet(delay, loop, refresh) {
+  const config = { delay, loop, refresh };
+  localStorage.setItem(BREAKER_CONFIG, JSON.stringify(config));
+
+  // reset state every set
+  localStorage.setItem(BREAKER_STATE, loop);
+  localStorage.setItem(BREAKER_STOP, "false");
+
+  console.log("breaker config set:", config);
+}
+// breakerSet(10000, 3, true)
+
+
+
+// RUN LOGIC
+function breakerRunner() {
+  const config = JSON.parse(localStorage.getItem(BREAKER_CONFIG));
+  let currentLoop = parseInt(localStorage.getItem(BREAKER_STATE));
+  const isStopped = localStorage.getItem(BREAKER_STOP) === "true";
+
+  if (!config) {
+    console.log("No config found. Please run breakerSet()");
+    $('[loops]').val("")
+    setTimeout(() => {
+      saveData()
+    }, 600);
+    return;
+  }
+
+  if (isStopped) {
+    console.log("breaker stopped.");
+    $('[loops]').val("")
+    setTimeout(() => {
+      saveData()
+    }, 600);
+    return;
+  }
+
+  if (currentLoop <= 0) {
+    console.log("finish / stop");
+    $('[loops]').val("")
+    breakerClear();
+    return;
+  }
+
+  console.log(`delay: ${config.delay / 1000} secs`);
+
+  breakerTimeout = setTimeout(() => {
+    const nextValue = currentLoop - 1;
+
+    console.log(`loop: ${currentLoop}`);
+    console.log(nextValue);
+
+    $('[loops]').val(nextValue)
+    setTimeout(() => {
+      saveData()
+    }, 600);
+
+    localStorage.setItem(BREAKER_STATE, nextValue);
+
+    breakerTimeout = setTimeout(() => {
+      console.log(`settimeout: 1sec refresh: ${config.refresh}`);
+
+      if (config.refresh) {
+        setTimeout(() => {
+          location.reload();
+        }, 10000);
+        // alert("LoL")
+      }else{
+
+        if (!sent_once) {
+          sent_once = true
+          $("[starts]").click()
+
+          setTimeout(() => {
+            sent_once = false
+          }, 600);
+        }
+      }
+    }, 1000);
+
+  }, config.delay);
+}  
+
+// STOP LOGIC
+function breakerStop() {
+  localStorage.setItem(BREAKER_STOP, "true");
+
+  if (breakerTimeout) {
+    clearTimeout(breakerTimeout);
+  }
+
+  console.log("breaker manually stopped.");
+}
+
+// CLEAR ALL
+function breakerClear() {
+  localStorage.removeItem(BREAKER_CONFIG);
+  localStorage.removeItem(BREAKER_STATE);
+  localStorage.removeItem(BREAKER_STOP);
+
+  if (breakerTimeout) {
+    clearTimeout(breakerTimeout);
+  }
+
+  console.log("breaker cleared.");
+}
