@@ -34,6 +34,9 @@ let commentObserver   = null;
 let restrictObserver  = null;
 let debounceTimer     = null;
 
+// Countdown
+let countdownInterval = null;
+
 
 // ========================
 // UI INJECT
@@ -41,11 +44,23 @@ let debounceTimer     = null;
 $("body").append(`
   <div style="position:fixed;bottom:20%;right:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
 
-    <button id="menuBtn" style="padding:3px;background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
-      <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor">
-        <path d="M440-280h80l12-60q12-5 22.5-10.5T576-364l58 18 40-68-46-40q2-14 2-26t-2-26l46-40-40-68-58 18q-11-8-21.5-13.5T532-620l-12-60h-80l-12 60q-12 5-22.5 10.5T384-596l-58-18-40 68 46 40q-2 14-2 26t2 26l-46 40 40 68 58-18q11 8 21.5 13.5T428-340l12 60Zm-16.5-143.5Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/>
-      </svg>
-    </button>
+    <div style="
+      z-index:9999;
+      width:100%;
+      display:flex;
+      justify-content: space-between;
+      flex-flow:row;
+      align-items: end;
+    ">
+      <div style="background:#7b2cbfff; padding:10px; color:#fff; border:none;">
+        <span time_hr>00</span>:<span time_min>00</span>:<span time_sec>00</span>
+      </div>
+      <button id="menuBtn" style="padding:3px;background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
+        <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor">
+          <path d="M440-280h80l12-60q12-5 22.5-10.5T576-364l58 18 40-68-46-40q2-14 2-26t-2-26l46-40-40-68-58 18q-11-8-21.5-13.5T532-620l-12-60h-80l-12 60q-12 5-22.5 10.5T384-596l-58-18-40 68 46 40q-2 14-2 26t2 26l-46 40 40 68 58-18q11 8 21.5 13.5T428-340l12 60Zm-16.5-143.5Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/>
+        </svg>
+      </button>
+    </div>
 
     <div id="mainBox" style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:12px 0px 12px 12px;font-family:sans-serif;color:#fff;">
 
@@ -223,7 +238,6 @@ function startObserving() {
     const isOpen = $container.length > 0;
 
     if (isOpen) {
-      // Tag elements once per open
       if (!$('textarea[aria-label="Reply"]').attr('owl_comment'))
         $('textarea[aria-label="Reply"]').attr('owl_comment', '');
       if (!$('button[data-testid="reply-button"]').attr('owl_sent'))
@@ -233,7 +247,6 @@ function startObserving() {
       if (!$(`div[aria-label="Reply restricted"]`).attr('sirado'))
         $(`div[aria-label="Reply restricted"]`).attr('sirado', '');
 
-      // Start commentObserver only once per popup open
       if (!commentObserver) {
         commentObserver = new MutationObserver(() => {
           setTimeout(() => {
@@ -243,7 +256,6 @@ function startObserving() {
               const commentText = $(this).find('.k31gt').text().trim();
               if (user && commentText) updated.push({ user, comment: commentText });
             });
-            // Always overwrite — message was already reset in delayOppner before popup opened
             message = updated;
           }, 300);
         });
@@ -253,7 +265,6 @@ function startObserving() {
       popupWasOpen = true;
 
     } else if (popupWasOpen) {
-      // Popup just closed — cleanup
       popupWasOpen = false;
       if (commentObserver) {
         commentObserver.disconnect();
@@ -274,7 +285,6 @@ startObserving();
 function waitForCommentBox(callback) {
   let tries = 0;
   const interval = setInterval(() => {
-    // Query directly — don't wait for mainObserver to tag it
     const el = document.querySelector('textarea[aria-label="Reply"]');
     if (el) {
       if (!el.hasAttribute('owl_comment')) el.setAttribute('owl_comment', '');
@@ -282,36 +292,30 @@ function waitForCommentBox(callback) {
       callback(el);
       return;
     }
-    if (++tries > 50) { // 50 × 300ms = 15s
+    if (++tries > 50) {
       clearInterval(interval);
-      
       clickonce    = false;
       isProceeding = false;
       isWorking    = false;
-      countSelect++; // skip this post index
+      countSelect++;
       triggerNext("no comment box");
     }
   }, 300);
 }
 
 function waitForMessage(callback, onTimeout) {
-  // Give the commentObserver some time to collect messages first
-  // then pass whatever we have (empty = no duplicates found = safe to send)
   let tries = 0;
   const interval = setInterval(() => {
     const popup = document.querySelector('div[data-testid="notes-root"]');
 
-    // Popup not open yet — keep waiting
     if (!popup) {
-      if (++tries > 40) { // 40 × 400ms = 16s
+      if (++tries > 40) {
         clearInterval(interval);
-        
         if (typeof onTimeout === "function") onTimeout();
       }
       return;
     }
 
-    // Popup is open — wait a bit for comments to load then proceed
     clearInterval(interval);
     setTimeout(() => {
       console.log(`💬 Messages loaded: ${message.length}`);
@@ -326,19 +330,16 @@ function waitForMessage(callback, onTimeout) {
 // POST CLICK OPENER
 // ========================
 function findCommentButton(entry) {
-  // Strategy 1: via stored owl_coms attribute (fast, works if DOM still has it)
   if (entry.owl_coms) {
     const byAttr = document.querySelector(`[owl_coms="${entry.owl_coms}"]`);
     if (byAttr) return byAttr;
   }
 
-  // Strategy 2: find article by owl_gen, then find the comment button inside it
   if (entry.owl_gen) {
     const article = document.querySelector(`article[owl_gen="${entry.owl_gen}"]`);
     if (article) {
       const btn = article.querySelector('button[aria-label="Comment"]');
       if (btn) {
-        // Re-tag it so future lookups via attr still work
         if (!btn.hasAttribute("owl_coms") && entry.owl_coms) {
           btn.setAttribute("owl_coms", entry.owl_coms);
         }
@@ -358,7 +359,6 @@ function delayOppner(delaySec) {
     const entry = owl_data[countSelect];
 
     if (!entry) {
-      
       isWorking    = false;
       isProceeding = false;
       clickonce    = false;
@@ -372,7 +372,6 @@ function delayOppner(delaySec) {
         btn.click();
         console.log(`✅ Clicked comment button for index ${countSelect}`);
       } else {
-        // Button not found — skip silently
         isWorking    = false;
         isProceeding = false;
         clickonce    = false;
@@ -381,7 +380,6 @@ function delayOppner(delaySec) {
         return;
       }
     } catch (e) {
-      // Skip silently on any error
       isWorking    = false;
       isProceeding = false;
       clickonce    = false;
@@ -434,7 +432,6 @@ function startRestrictObserver() {
 
   restrictObserver.observe(document.body, { childList: true, subtree: true });
 
-  // Auto-cleanup only — no triggerNext here, comment flow handles it
   setTimeout(() => {
     if (restrictObserver) {
       restrictObserver.disconnect();
@@ -496,6 +493,9 @@ function fullStop() {
   countSelect          = 0;
   if (breakerTimeout) { clearTimeout(breakerTimeout); breakerTimeout = null; }
   if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
+
+  stopCountdown();
+  setStartBtn("idle"); // ← ADDED
 }
 
 
@@ -510,13 +510,10 @@ $(document).on("click", "[openthis]", function () {
   startRestrictObserver();
 
   try {
-    // Step 1: Wait for popup to open
     waitForCommentBox(box => {
 
-      // Step 2: Wait for existing comments to load FIRST — check duplicate before typing
       waitForMessage(msg => {
 
-          // Check: restricted?
           if (isRestricted) {
             console.log("🚫 Restricted — skipping post");
             $("[owl_clsoe_com]").click();
@@ -528,7 +525,6 @@ $(document).on("click", "[openthis]", function () {
             return;
           }
 
-          // Check: duplicate?
           const isDuplicate = msg.some(x => x.comment === comment);
           if (isDuplicate) {
             console.log("🔄 Duplicate detected — skipping without typing");
@@ -541,11 +537,9 @@ $(document).on("click", "[openthis]", function () {
             return;
           }
 
-          // Step 3: Safe to type — no duplicate found
           console.log("✏️ No duplicate — typing comment");
           setTextareaValue(box, comment);
 
-          // Step 4: Send
           setTimeout(() => {
             clickPerActionCount++;
             console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
@@ -564,7 +558,6 @@ $(document).on("click", "[openthis]", function () {
           }, 500);
 
         }, () => {
-          // Timeout — popup never opened, skip safely
           $("[owl_clsoe_com]").click();
           if (commentObserver) { commentObserver.disconnect(); commentObserver = null; }
           if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
@@ -582,6 +575,52 @@ $(document).on("click", "[openthis]", function () {
     isWorking    = false;
   }
 });
+
+
+// ========================
+// COUNTDOWN DISPLAY
+// ========================
+function startCountdown(ms) {
+  // Clear any existing countdown first
+  stopCountdown();
+
+  let remaining = ms;
+
+  // Show initial value immediately
+  updateCountdownDisplay(remaining);
+
+  countdownInterval = setInterval(() => {
+    remaining -= 1000;
+    if (remaining <= 0) {
+      remaining = 0;
+      updateCountdownDisplay(remaining);
+      stopCountdown();
+      return;
+    }
+    updateCountdownDisplay(remaining);
+  }, 1000);
+}
+
+function updateCountdownDisplay(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSeconds % 60).padStart(2, '0');
+  $("[time_hr]").text(h);
+  $("[time_min]").text(m);
+  $("[time_sec]").text(s);
+}
+
+function stopCountdown() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+  // Reset display to 00:00:00
+  $("[time_hr]").text("00");
+  $("[time_min]").text("00");
+  $("[time_sec]").text("00");
+}
 
 
 // ========================
@@ -603,11 +642,15 @@ function breakerRunner() {
   if (!config || isStopped || currentLoop <= 0) {
     console.log(isStopped ? "Breaker stopped." : "Breaker done / no config.");
     $('[loops]').val("");
+    stopCountdown();
+    setStartBtn("idle"); // ← ADDED
     breakerClear();
     return;
   }
 
   console.log(`⏳ Break ${config.delay / 1000}s | loops left: ${currentLoop}`);
+  setStartBtn("break"); // ← ADDED: show break state while waiting
+  startCountdown(config.delay);
 
   breakerTimeout = setTimeout(() => {
     const nextLoop = currentLoop - 1;
@@ -652,7 +695,6 @@ function looperRun() {
   const loopsVal  = $('[loops]').val();
   const isRefresh = $('[refresh_status]').is(':checked');
 
-  // Only auto-resume if: loops has a value > 0 AND refresh is checked
   if (!loopsVal || loopsVal.trim() === "" || Number(loopsVal) <= 0 || !isRefresh) return;
 
   setTimeout(() => $("[starts]").click(), 1500);
@@ -667,12 +709,12 @@ $(document).ready(looperRun);
 $(document).on("click", "[starts]", function () {
   const loopsVal = $('[loops]').val();
 
-  // Reset counters on fresh start
   countSelect         = 0;
   clickPerActionCount = 0;
   isProceeding        = false;
   isWorking           = false;
   clickonce           = false;
+  sent_once           = false; // ← ADDED: ensure clean state on every start
 
   const cfg = {
     mints:          $('[mints]').val(),
@@ -691,6 +733,7 @@ $(document).on("click", "[starts]", function () {
     cfg.refresh_status
   );
 
+  setStartBtn("running"); // ← ADDED
   clickPerAction(cfg.manypost);
 });
 
@@ -701,4 +744,20 @@ $(document).on("click", "[starts]", function () {
 $(document).on("click", "[stopoperation]", function () {
   breakerStop();
   fullStop();
+  setStartBtn("idle"); // ← ADDED
 });
+
+
+// ========================
+// START BUTTON INDICATOR
+// ========================
+function setStartBtn(state) {
+  const btn = $("[starts]");
+  if (state === "running") {
+    btn.text("RUNNING...").css("background", "#2dc653"); // green
+  } else if (state === "break") {
+    btn.text("ON BREAK").css("background", "#e85d04");   // orange
+  } else {
+    btn.text("START").css("background", "#7b2cbf");      // default purple
+  }
+}
