@@ -52,7 +52,7 @@ $("body").append(`
       flex-flow:row;
       align-items: end;
     ">
-      <div style="background:#7b2cbfff; padding:10px; color:#fff; border:none;">
+      <div style="background:#10002bff; border: 1px solid white; border-bottom: none; padding:10px; color:#fff;">
         <span time_hr>00</span>:<span time_min>00</span>:<span time_sec>00</span>
       </div>
       <button id="menuBtn" style="padding:3px;background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
@@ -62,7 +62,7 @@ $("body").append(`
       </button>
     </div>
 
-    <div id="mainBox" style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:12px 0px 12px 12px;font-family:sans-serif;color:#fff;">
+    <div id="mainBox" style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:0px 0px 12px 12px;font-family:sans-serif;color:#fff;">
 
       <div style="margin-bottom:10px;">
         <label style="font-size:12px;color:#c77dffff;">Break</label><br>
@@ -98,9 +98,9 @@ $("body").append(`
         <input refresh_status type="checkbox" style="margin-left:5px;">
       </div>
 
-      <div style="width:100%;padding:10px;display:flex;justify-content:center;flex-direction:row;align-items:center;gap:10px;">
+      <div style="width:100%; padding:10px;display:flex;justify-content:center;flex-direction:row;align-items:center;gap:5px;">
         <button starts style="flex:1;padding:8px;background:#7b2cbf;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">START</button>
-        <button stopoperation style="width:30%;padding:8px;background:red;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">STOP</button>
+        <button stopoperation style="flex:1; width:40%;padding:8px;background:red;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">STOP</button>
       </div>
 
     </div>
