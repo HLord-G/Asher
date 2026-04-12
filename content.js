@@ -525,7 +525,7 @@ $(document).on("click", "[openthis]", function () {
             return;
           }
 
-          const isDuplicate = msg.some(x => x.comment === comment);
+          const isDuplicate = msg.some(x => x.comment.trim().toLowerCase() === comment.trim().toLowerCase());
           if (isDuplicate) {
             console.log("🔄 Duplicate detected — skipping without typing");
             $("[owl_clsoe_com]").click();
