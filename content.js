@@ -1,841 +1,452 @@
+// ============================================================
+// OWL BOT - OPTIMIZED
+// ============================================================
+
+// ========================
+// GLOBALS
+// ========================
 const owl_data = [];
-let message = [];
-let mainObserver;
-let commentObserver;
-let username = "mysticriddlehurricane"
+let message    = [];
+let username   = "mysticriddlehurricane";
+let comment    = "";
 
-let comment;
-let percount = 0;
-let _anyChange = 0;
+// Action state
+let clickonce            = false;
+let sent_once            = false;
+let isProceeding         = false;
+let isWorking            = false;
+let clickPerActionCount  = 0;
+let clickPerActionTarget = 0;
+let countSelect          = 0;
 
-//==================================================== [S] EH LOAD TANAN
-function autoScrollLoadAll() {
-  let lastHeight = 0;
-  let sameCount = 0;
+// Breaker
+let breakerTimeout = null;
+const BREAKER_CONFIG = "breaker_config";
+const BREAKER_STATE  = "breaker_state";
+const BREAKER_STOP   = "breaker_stop";
 
-  const interval = setInterval(() => {
-    // scroll down
-    window.scrollTo(0, document.body.scrollHeight);
+// Settings storage
+const STORAGE_KEY = "myExtensionData";
 
-    let newHeight = document.body.scrollHeight;
-
-    if (newHeight === lastHeight) {
-      sameCount++;
-
-      // kung 3x same height → wala na nag load
-      if (sameCount >= 3) {
-        clearInterval(interval);
-        alert("Loaded na tanan articles ✅");
-      }
-    } else {
-      sameCount = 0; // reset kung naay new load
-      lastHeight = newHeight;
-    }
-
-  }, 1500); // adjust delay kung hinay net
-}
-
-// trigger
-// autoScrollLoadAll();
-
-function scrollToBottom() {
-  window.scrollTo({
-    top: document.body.scrollHeight,
-    behavior: "smooth"
-  });
-}
-//==================================================== [E] EH LOAD TANAN
+// Observers
+let mainObserver      = null;
+let commentObserver   = null;
+let restrictObserver  = null;
+let debounceTimer     = null;
 
 
- 
-
-
+// ========================
+// UI INJECT
+// ========================
 $("body").append(`
+  <div style="position:fixed;bottom:20%;right:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
 
+    <button id="menuBtn" style="padding:3px;background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
+      <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor">
+        <path d="M440-280h80l12-60q12-5 22.5-10.5T576-364l58 18 40-68-46-40q2-14 2-26t-2-26l46-40-40-68-58 18q-11-8-21.5-13.5T532-620l-12-60h-80l-12 60q-12 5-22.5 10.5T384-596l-58-18-40 68 46 40q-2 14-2 26t2 26l-46 40 40 68 58-18q11 8 21.5 13.5T428-340l12 60Zm-16.5-143.5Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/>
+      </svg>
+    </button>
 
+    <div id="mainBox" style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:12px 0px 12px 12px;font-family:sans-serif;color:#fff;">
 
-  <div style="
-    position:fixed;
-    bottom:20%;
-    right:0%;
-    padding:10px;
-    border-radius:8px;
-    z-index:9999;
-    display:flex;
-    justify-items: start;
-    flex-flow:row;
-    flex-flow: column;
-    align-items: end;
-  ">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:#c77dffff;">Break</label><br>
+        <select mints style="width:100%;padding:5px;background:#240046ff;color:#fff;border:none;border-radius:6px;margin-top:5px;">
+          <option value="hrs">hrs</option>
+          <option value="mins">mins</option>
+          <option value="sec">sec</option>
+        </select>
+        <input type="number" time placeholder="Enter value"
+          style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+      </div>
 
-<button id="menuBtn"
-  style="padding:3px; background:#7b2cbfff; color:#fff; border:none; cursor:pointer;">
-     <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor"><path d="M440-280h80l12-60q12-5 22.5-10.5T576-364l58 18 40-68-46-40q2-14 2-26t-2-26l46-40-40-68-58 18q-11-8-21.5-13.5T532-620l-12-60h-80l-12 60q-12 5-22.5 10.5T384-596l-58-18-40 68 46 40q-2 14-2 26t2 26l-46 40 40 68 58-18q11 8 21.5 13.5T428-340l12 60Zm-16.5-143.5Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/></svg>
-</button>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:#c77dffff;">Post Count</label><br>
+        <input type="number" manypost placeholder="How many posts"
+          style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+      </div>
 
-<div id="mainBox" style="width:210px; background:#10002bff; padding:15px; border:1px solid white; border-radius:12px 0px 12px 12px; font-family:sans-serif; color:#fff;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:#c77dffff;">Loop</label><br>
+        <input type="number" loops placeholder="How many Loops"
+          style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+      </div>
 
-  <div timers style="margin-bottom:10px;">
-    <label style="font-size:12px; color:#c77dffff;">Break</label><br>
-    <select mints style="width:100%; padding:5px; background:#240046ff; color:#fff; border:none; border-radius:6px; margin-top:5px;">
-      <option value="hrs">hrs</option>
-      <option value="mins">mins</option>
-      <option value="sec">sec</option>
-    </select>
-    <input type="number" time placeholder="Enter value"
-      style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:#c77dffff;">Comment</label><br>
+        <textarea comments placeholder="Write comment..."
+          style="width:100%;margin-top:5px;height:130px;font-size:13px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;resize:vertical;"></textarea>
+      </div>
+
+      <div style="margin-bottom:10px;font-size:12px;">
+        <span style="color:#c77dffff;">Refresh</span>
+        <input refresh_status type="checkbox" style="margin-left:5px;">
+      </div>
+
+      <div style="width:100%;padding:10px;display:flex;justify-content:center;flex-direction:row;align-items:center;gap:10px;">
+        <button starts style="flex:1;padding:8px;background:#7b2cbf;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">START</button>
+        <button stopoperation style="width:30%;padding:8px;background:red;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">STOP</button>
+      </div>
+
+    </div>
+
+    <button openthis style="position:fixed;left:-400%;">open</button>
   </div>
+`);
 
-  <div post_selections style="margin-bottom:10px;">
-    <label style="font-size:12px; color:#c77dffff;">Post Count</label><br>
-    <input type="number" manypost placeholder="How many posts"
-      style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
-  </div>
-
-    <div post_selections style="margin-bottom:10px;">
-    <label style="font-size:12px; color:#c77dffff;">Loop</label><br>
-    <input type="number" loops placeholder="How many Loops"
-      style="width:100%; margin-top:5px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px;">
-  </div>
-
-  <div comment style="margin-bottom:10px;">
-    <label style="font-size:12px; color:#c77dffff;">Comment</label><br>
-   <textarea comments placeholder="Write comment..."
-  style="width:100%; margin-top:5px; height:130px; font-size:13px; padding:5px; background:#3c096cff; color:#fff; border:none; border-radius:6px; resize:vertical;"></textarea>
-  </div>
-
-  <div refresh style="margin-bottom:10px; font-size:12px;">
-    <span style="color:#c77dffff;">Refresh</span>
-    <input refresh_status type="checkbox" style="margin-left:5px;">
-  </div>
-
-  
-<div style="
-  width:100%;
-  padding:10px;
-  display:flex;
-  justify-content:center;
-  flex-direction:row;
-  align-items:center;
-  gap:10px;
-">
-  <button starts
-    style="flex:1; padding:8px; background:#7b2cbf; border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer;">
-    START
-  </button>
-
-  <button stopoperation
-    style="width:30%; padding:8px; background:red; border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer;">
-    STOP
-  </button>
-</div>
-
-</div>
+$(document).on("click", "#menuBtn", () => $("#mainBox").toggle());
 
 
-<button openthis style="position:fixed; left:-400%;"> opeen </button>
-</div>
+// ========================
+// SETTINGS: SAVE / LOAD
+// ========================
+function saveData() {
+  const data = {
+    mints:          $('[mints]').val(),
+    time:           $('[time]').val(),
+    manypost:       $('[manypost]').val(),
+    loops:          $('[loops]').val(),
+    comments:       $('[comments]').val(),
+    refresh_status: $('[refresh_status]').is(':checked')
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadData() {
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  $('[mints]').val(data.mints || '');
+  $('[time]').val(data.time || '');
+  $('[manypost]').val(data.manypost || '');
+  $('[loops]').val(data.loops || '');
+  $('[comments]').val(data.comments || '');
+  $('[refresh_status]').prop('checked', data.refresh_status || false);
+}
+
+let saveTimeout;
+function autoSave() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveData, 300);
+}
+
+$(document).on('input change', '[mints],[time],[manypost],[loops],[comments],[refresh_status]', autoSave);
+loadData();
 
 
-`)
-
-
-$(document).on("click", "#menuBtn", function() {
-  $("#mainBox").toggle();
-});
-
-
-
-    const STORAGE_KEY = "myExtensionData";
-
-    // 🔹 SAVE
-    function saveData() {
-        const data = {
-            mints: $('[mints]').val(),
-            time: $('[time]').val(),
-            manypost: $('[manypost]').val(),
-            loops: $('[loops]').val(), // ✅ NEW
-            comments: $('[comments]').val(),
-            refresh_status: $('[refresh_status]').is(':checked')
-        };
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        console.log("AUTO SAVED", data);
-    }
-
-    // 🔹 LOAD
-    function loadData() {
-        const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-
-        $('[mints]').val(data.mints || '');
-        $('[time]').val(data.time || '');
-        $('[manypost]').val(data.manypost || '');
-        $('[loops]').val(data.loops || ''); // ✅ NEW
-        $('[comments]').val(data.comments || '');
-        $('[refresh_status]').prop('checked', data.refresh_status || false);
-    }
-
-    // 🔥 AUTO SAVE (ALL FIELDS APIL LOOPS)
-    $(document).on(
-        'input change',
-        '[mints], [time], [manypost], [loops], [comments], [refresh_status]',
-        function () {
-            autoSave();
-        }
-    );
-
-    // 🔥 MUTATION OBSERVER (para bisan gi edit via JS)
-    const observer = new MutationObserver(() => {
-        autoSave();
-    });
-
-    observer.observe(document.getElementById('mainBox'), {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        characterData: true
-    });
-
-    // 🔥 DEBOUNCE (para dili spam save)
-    let timeout;
-    function autoSave() {
-        clearTimeout(timeout);
-        timeout = setTimeout(saveData, 300);
-    }
-
-    // 🔹 INIT
-    loadData();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ==========================
-// GENERATE UNIQUE ID
-// ==========================
+// ========================
+// HELPERS
+// ========================
 function generateID(length = 15) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
+  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
-// ==========================
-// GET AVATAR (FIXED)
-// ==========================
+function timerConverter_mil({ status, timer }) {
+  const map = { hrs: 3600000, mins: 60000, sec: 1000 };
+  return (map[status] || 0) * Number(timer);
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function getAvatar(imgEl) {
   if (!imgEl) return "";
-
-  // 🔥 BEST: actual loaded image
-  if (imgEl.currentSrc) {
-    return imgEl.currentSrc.replace(".pnj", ".png");
-  }
-
-  // Try srcset
+  if (imgEl.currentSrc)               return imgEl.currentSrc.replace(".pnj", ".png");
   const srcset = imgEl.getAttribute("srcset");
   if (srcset) {
-    const urls = srcset.split(",");
-    const last = urls[urls.length - 1];
-    const match = last.match(/https:[^ ]+/);
+    const match = srcset.split(",").pop().match(/https:[^ ]+/);
     if (match) return match[0].replace(".pnj", ".png");
   }
-
-  // Fallback src
-  const src = imgEl.getAttribute("src");
-  if (src) {
-    return src.replace(".pnj", ".png");
-  }
-
-  return "";
+  return (imgEl.getAttribute("src") || "").replace(".pnj", ".png");
 }
 
-// ==========================
-// WAIT FOR IMAGE TO LOAD
-// ==========================
 function waitForImage(imgEl, callback, retries = 15) {
   if (!imgEl) return callback("");
-
   const check = () => {
-    // ✅ ensure image is loaded
-    if (imgEl.complete && imgEl.naturalWidth > 0) {
-      return callback(getAvatar(imgEl));
-    }
-
-    if (retries <= 0) {
-      return callback(getAvatar(imgEl));
-    }
-
-    retries--;
+    if (imgEl.complete && imgEl.naturalWidth > 0) return callback(getAvatar(imgEl));
+    if (retries-- <= 0)                           return callback(getAvatar(imgEl));
     setTimeout(check, 300);
   };
-
   check();
 }
 
-// ==========================
-// MAIN FUNCTION
-// ==========================
+
+// ========================
+// ARTICLE SCRAPER
+// ========================
 function articles_gen() {
-  const articles = document.querySelectorAll("article");
-
-  articles.forEach((article) => {
-    // ❌ skip already processed
-    if (article.hasAttribute("owl_gen")) return;
-
+  document.querySelectorAll("article:not([owl_gen])").forEach(article => {
     const genID = generateID();
     article.setAttribute("owl_gen", genID);
 
-    // ======================
-    // COMMENT BUTTON
-    // ======================
     const commentBtn = article.querySelector('button[aria-label="Comment"]');
-
     let comID = null;
     if (commentBtn) {
       comID = generateID();
       commentBtn.setAttribute("owl_coms", comID);
     }
 
-    // ======================
-    // USERNAME
-    // ======================
-    const userEl = article.querySelector('a[rel="author"]');
-    const username = userEl ? userEl.textContent.trim() : "unknown";
+    const userEl   = article.querySelector('a[rel="author"]');
+    const uname    = userEl ? userEl.textContent.trim() : "unknown";
+    const imgEl    = article.querySelector('figure[aria-label="Avatar"] img');
 
-    // ======================
-    // AVATAR IMAGE
-    // ======================
-    const imgEl = article.querySelector('figure[aria-label="Avatar"] img');
-
-    waitForImage(imgEl, (img) => {
-      const data = {
-        owl_username: username,
-        owl_img: img,
-        owl_gen: genID,
-        owl_coms: comID,
-        timestamp: Date.now()
-      };
-
-      // 🔥 prevent duplicates
+    waitForImage(imgEl, img => {
       if (!owl_data.some(item => item.owl_gen === genID)) {
-        owl_data.push(data);
-        console.log("Captured:", data);
+        owl_data.push({ owl_username: uname, owl_img: img, owl_gen: genID, owl_coms: comID, timestamp: Date.now() });
       }
     });
   });
 }
 
-// ==========================
-// INITIAL RUN
-// ==========================
-setTimeout(() => {
-  articles_gen();
-}, 2000);
+setTimeout(articles_gen, 2000);
 
-// ==========================
-// OBSERVER (OPTIMIZED)
-// ==========================
-let debounceTimer;
-
-new MutationObserver((mutations) => {
-  // 🔍 only run if article added
+new MutationObserver(mutations => {
   const hasArticle = mutations.some(m =>
-    [...m.addedNodes].some(node =>
-      node.nodeType === 1 &&
-      (node.matches?.("article") || node.querySelector?.("article"))
-    )
+    [...m.addedNodes].some(n => n.nodeType === 1 && (n.matches?.("article") || n.querySelector?.("article")))
   );
-
   if (!hasArticle) return;
-
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    articles_gen();
-  }, 500);
-}).observe(document.body, {
-  childList: true,
-  subtree: true
-});
+  debounceTimer = setTimeout(articles_gen, 500);
+}).observe(document.body, { childList: true, subtree: true });
 
 
-// ==========================================================================================================================[S] COMMENT AREA
-
-// I-sigurado nga naay global o outer variable ani aron dili mag-error
-
+// ========================
+// COMMENT OBSERVER
+// ========================
 function startObserving() {
-    if (window.mainObserver) {
-        console.log("Main observer is already running.");
-        return;
+  if (mainObserver) return;
+
+  let popupWasOpen = false;
+
+  mainObserver = new MutationObserver(() => {
+    const $container = $('div[data-testid="notes-root"]');
+    const isOpen = $container.length > 0;
+
+    if (isOpen) {
+      // Tag elements once per open
+      if (!$('textarea[aria-label="Reply"]').attr('owl_comment'))
+        $('textarea[aria-label="Reply"]').attr('owl_comment', '');
+      if (!$('button[data-testid="reply-button"]').attr('owl_sent'))
+        $('button[data-testid="reply-button"]').attr('owl_sent', '');
+      if (!$('button[class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined"]').attr('owl_clsoe_com'))
+        $('button[class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined"]').attr('owl_clsoe_com', '');
+      if (!$(`div[aria-label="Reply restricted"]`).attr('sirado'))
+        $(`div[aria-label="Reply restricted"]`).attr('sirado', '');
+
+      // Start commentObserver only once per popup open
+      if (!commentObserver) {
+        commentObserver = new MutationObserver(() => {
+          setTimeout(() => {
+            const updated = [];
+            $container.find('div.MI6Q7').each(function () {
+              const user        = $(this).find('div[aria-label="Blog name"] a').text().trim();
+              const commentText = $(this).find('.k31gt').text().trim();
+              if (user && commentText) updated.push({ user, comment: commentText });
+            });
+            // Always overwrite — message was already reset in delayOppner before popup opened
+            message = updated;
+          }, 300);
+        });
+        commentObserver.observe($container[0], { childList: true, subtree: true, characterData: true });
+      }
+
+      popupWasOpen = true;
+
+    } else if (popupWasOpen) {
+      // Popup just closed — cleanup
+      popupWasOpen = false;
+      if (commentObserver) {
+        commentObserver.disconnect();
+        commentObserver = null;
+      }
     }
+  });
 
-    window.mainObserver = new MutationObserver(() => {
-        const $container = $('div[data-testid="notes-root"]');
-        const $textarea = $('textarea[aria-label="Reply"]');
-        const $sendBtn = $('button[data-testid="reply-button"]');
-        const $closeBtn = $('button[class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined"]');
-        const $restreck = $(`div[aria-label="Reply restricted"]`);
-
-        if ($container.length > 0) {
-
-            // ✅ reset message kada open
-            message = [];
-
-            if (!$textarea.attr('owl_comment')) $textarea.attr('owl_comment', '');
-            if (!$sendBtn.attr('owl_sent')) $sendBtn.attr('owl_sent', '');
-            if (!$closeBtn.attr('owl_clsoe_com')) $closeBtn.attr('owl_clsoe_com', '');
-            if (!$restreck.attr('sirado')) $restreck.attr('sirado', '');
-
-
-            if (!window.commentObserver) {
-                console.log("Monitoring comments loading...");
-
-                window.commentObserver = new MutationObserver(() => {
-
-                    // gamay delay para sure loaded ang DOM
-                    setTimeout(() => {
-
-                        let currentMessages = [];
-
-                        const $commentWrappers = $container.find('div.MI6Q7');
-                        console.log(`Nakit-an nga comment wrappers: ${$commentWrappers.length}`);
-
-                        $commentWrappers.each(function () {
-                            const user = $(this).find('div[aria-label="Blog name"] a').text().trim();
-                            const commentText = $(this).find('.k31gt').text().trim();
-
-                            console.log(`User: "${user}", Comment: "${commentText}"`);
-
-                            if (user && commentText) {
-                                currentMessages.push({ user, comment: commentText });
-                            }
-                        });
-
-                        // ✅ mas safe compare
-                        if (currentMessages.length !== message.length) {
-                            message = currentMessages;
-                              console.log("Message updated:", message);
-                        }
-
-                    }, 300);
-
-                });
-
-                window.commentObserver.observe($container[0], {
-                    childList: true,
-                    subtree: true,
-                    characterData: true
-                });
-            }
-
-        } else {
-            // ✅ cleanup kung close ang popup
-            if (window.commentObserver) {
-                window.commentObserver.disconnect();
-                window.commentObserver = null;
-                // message = [];
-                console.log("Popup closed, message cleared.");
-            }
-        }
-    });
-
-    window.mainObserver.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+  mainObserver.observe(document.body, { childList: true, subtree: true });
 }
-
-function clickAndRefresh(index, delay) {
-    setTimeout(() => {
-
-        // ✅ stop previous observer
-        if (window.commentObserver) {
-            window.commentObserver.disconnect();
-            window.commentObserver = null;
-        }
-
-        // ✅ reset message
-        // message = [];
-
-        // ✅ click target
-        const selector = `[owl_coms="${owl_data[index].owl_coms}"]`;
-        const $target = $(selector);
-
-        if ($target.length > 0) {
-            $target.click();
-            console.log(`Clicked index ${index}`);
-        } else {
-            console.log(`Element not found for index ${index}`);
-        }
-
-    }, delay);
-}
-
-// aria-label="Reply restricted"
-
-// message
-// owl_comment
-// owl_sent
-// ==========================================================================================================================[E] COMMENT AREA
-
 
 startObserving();
 
 
-
-
-
-
-let clickonce = false;
-let ifSent = false;
-
+// ========================
+// WAIT HELPERS
+// ========================
 function waitForCommentBox(callback) {
-    let tries = 0;
-
-    const interval = setInterval(() => {
-        const el = document.querySelector('textarea[owl_comment]');
-        if (el) {
-            clearInterval(interval);
-            callback(el);
-        }
-
-        if (++tries > 15) {
-            console.log("❌ No comment box");
-            clearInterval(interval);
-        }
-    }, 300);
-}
-
-function waitForMessage(callback) {
-    let tries = 0;
-
-    const interval = setInterval(() => {
-        if (message && message.length > 0) {
-            clearInterval(interval);
-            callback(message);
-        }
-
-        if (++tries > 15) {
-            console.log("❌ No message detected");
-            $("[owl_sent]").click();
-            clearInterval(interval);
-        }
-    }, 400);
-}
-
-// setTimeout(() => {
-//   const selector = `[owl_coms=${owl_data[3]["owl_coms"]}]`;
-//   const $target = $(selector);
-
-//   $target.click()
-// }, 2000);
-
-// setTimeout(() => {
-
-//     const selector = `[owl_coms=${owl_data[3]["owl_coms"]}]`;
-//     const $target = $(selector);
-
-//     if ($target.length === 0) {
-//         console.log("❌ Target not found");
-//         return;
-//     }
-
-//     // ✅ CLICK
-//     $target.click();
-//     startObserving();
-
-//     console.log("Clicked:", owl_data[3]["owl_coms"]);
-//     console.log("|+========================================================+|");
-
-//     // ✅ WAIT COMMENT BOX
-//     waitForCommentBox((commentBox) => {
-//       const $textarea = $('textarea[aria-label="Reply"]');
-
-//         // ✅ TYPE COMMENT
-//         let comms = "nice onesss";
-//         commentBox.value = comms;
-//         commentBox.dispatchEvent(new Event('input', { bubbles: true }));
-//         console.log("✅ Comment set!");
-
-//         if ($textarea.attr('owl_comment')){
-//           $("[owl_clsoe_com]").click()
-//         }
-
-//         // OPTIONAL SEND
-//         // ✅ WAIT MESSAGE DATA
-//         waitForMessage((msg) => {
-
-//                 console.log("=======================================================");
-//                 msg.forEach(x => {
-//                     if (x.user === username && x.comment === comms) {
-//                         console.log("⚠️ cancel (duplicate)");
-//                         $("[owl_clsoe_com]").click()
-//                     }else{
-//                       $("[owl_sent]").click();
-
-//                       setTimeout(() => {
-//                         $("[owl_clsoe_com]").click()
-//                       }, 1900);
-//                     }
-//                 });
-            
-//             console.log("=======================================================");
-
-//             // ✅ CLEANUP AFTER SUCCESS
-//             if (window.commentObserver) {
-//                 window.commentObserver.disconnect();
-//                 window.commentObserver = null;
-//             }
-
-//         });
-
-//     });
-
-// }, 5000);
-
-
-
-
-
-let countSelect = 0;
-let isRunning = false;
-let perPostCounter = 0
-
-function wait(ms){
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function openerComm(delayTime = 2000, isLoop = true){
-  
-  if(isRunning) return;
-  isRunning = true;
-
-  if (!owl_data || owl_data.length === 0) {
-    console.warn("⚠️ owl_data is empty or undefined");
-    isRunning = false;
-    return;
-  }
-
-  try {
-    while(isLoop && countSelect < owl_data.length){
-      $("[owl_clsoe_com]").click()
-      const selector = `[owl_coms=${owl_data[countSelect]["owl_coms"]}]`;
-      const $target = $(selector);
-
-      console.log("🔍 Trying:", selector);
-
-      if ($target.length === 0) {
-        console.log("❌ Not found:", selector);
-        countSelect++;
-        continue;
-      }
-
-      await wait(delayTime);
-
-      $target.click();
-      console.log("✅ Clicked:", selector);
-
-      countSelect++;
-
-      await wait(delayTime);
+  let tries = 0;
+  const interval = setInterval(() => {
+    // Query directly — don't wait for mainObserver to tag it
+    const el = document.querySelector('textarea[aria-label="Reply"]');
+    if (el) {
+      if (!el.hasAttribute('owl_comment')) el.setAttribute('owl_comment', '');
+      clearInterval(interval);
+      callback(el);
+      return;
     }
-  } catch(err) {
-    console.error("💥 Error:", err);
-  } finally {
-    isRunning = false;
-  }
-}
-
-function delayOppner(params) {
-  $("[owl_clsoe_com]").click()
-  
-  // Check if attribute EXISTS
-  startObserving();
-
-    setTimeout(() => {
+    if (++tries > 50) { // 50 × 300ms = 15s
+      clearInterval(interval);
       
-        const selector = `[owl_coms=${owl_data[countSelect]["owl_coms"]}]`;
-        const $target = $(selector);
-        $target.click()
-       
-        countSelect++
-    }, params * 1000);
+      clickonce    = false;
+      isProceeding = false;
+      isWorking    = false;
+      countSelect++; // skip this post index
+      triggerNext("no comment box");
+    }
+  }, 300);
 }
 
+function waitForMessage(callback, onTimeout) {
+  // Give the commentObserver some time to collect messages first
+  // then pass whatever we have (empty = no duplicates found = safe to send)
+  let tries = 0;
+  const interval = setInterval(() => {
+    const popup = document.querySelector('div[data-testid="notes-root"]');
 
-// function perPostChecker(){
-//         if (percount <= perPostCounter) {
-//             alert("okay na")
-//             return;
-//         }
-// }
-// function percountSetup(params) {
-//   percount = params
-// }percountSetup(3)
-
-
-// =========================
-// 🌐 GLOBALS
-// =========================
-
-let clickPerActionCount  = 0;
-let clickPerActionTarget = 0;
-let isProceeding         = false;
-let isWorking            = false;
-
-let timerBreakReps    = 0;
-let timerBreakTarget  = 0;
-let timerBreakDelay   = 0;
-let timerBreakRefresh = false;
-let sent_once = false;
-const BREAKER_CONFIG = "breaker_config";
-const BREAKER_STATE = "breaker_state";
-const BREAKER_STOP = "breaker_stop";
-
-let breakerTimeout = null;
-
-// =========================
-// Milisecond Converter
-// =========================
-function timerConverter_mil({ status, timer }) {
-    if (!status || !timer) return 0;
-
-    const timeMap = {
-        hrs: 3600000,
-        mins: 60000,
-        sec: 1000
-    };
-
-    return (timeMap[status] || 0) * timer;
-}
-
-
-// =========================
-// 💾 SAVE / LOAD STATE
-// =========================
-function saveState() {
-  localStorage.setItem("auto_state", JSON.stringify({
-    clickPerActionTarget,
-    timerBreakReps,
-    timerBreakTarget,
-    timerBreakDelay,
-    timerBreakRefresh,
-    comment,
-    lastBreakTime: Date.now()
-  }));
-}
-
-function loadState() {
-  const saved = localStorage.getItem("auto_state");
-  if (!saved) return false;
-
-  localStorage.removeItem("auto_state");
-
-  const state = JSON.parse(saved);
-
-  clickPerActionTarget = state.clickPerActionTarget;
-  clickPerActionCount  = 0;
-  timerBreakReps       = state.timerBreakReps;
-  timerBreakTarget     = state.timerBreakTarget;
-  timerBreakDelay      = state.timerBreakDelay;
-  timerBreakRefresh    = state.timerBreakRefresh;
-  comment              = state.comment;
-
-  clickonce    = false;
-  isProceeding = false;
-  isWorking    = false;
-
-  console.log(`♻️ Resumed | rep ${timerBreakReps}/${timerBreakTarget} | posts reset to 0/${clickPerActionTarget}`);
-
-  const elapsed   = Date.now() - (state.lastBreakTime || 0);
-  const remaining = Math.max(0, timerBreakDelay - elapsed);
-
-  console.log(`⏳ Continuing in ${remaining / 1000}s...`);
-
-  setTimeout(() => {
-    triggerNext("resume after refresh");
-  }, remaining);
-
-  return true;
-}
-
-// =========================
-// ⏱ TIMER BREAK
-// =========================
-function timerBreak(delay, reps, refresh) {
-  timerBreakDelay   = delay;
-  timerBreakTarget  = reps;
-  timerBreakRefresh = refresh;
-  timerBreakReps    = 0;
-}
-
-function onClickPerActionDone() {
-  if (timerBreakTarget === 0) return;
-
-  timerBreakReps++;
-
- 
-  console.log(`✅ Loop ${timerBreakReps}/${timerBreakTarget} done`);
-
-  if (timerBreakReps >= timerBreakTarget) {
-    console.log("🏁 ALL LOOPS DONE");
-    console.log("done"); // ✅ HERE
-    return;
-  }
-
-  console.log(`⏳ Break for ${timerBreakDelay / 1000}s`);
-
-  setTimeout(() => {
-
-    if (timerBreakRefresh) {
-      console.log("🔄 Refreshing...");
-      saveState();
-      location.reload();
+    // Popup not open yet — keep waiting
+    if (!popup) {
+      if (++tries > 40) { // 40 × 400ms = 16s
+        clearInterval(interval);
+        
+        if (typeof onTimeout === "function") onTimeout();
+      }
       return;
     }
 
-    clickPerActionCount = 0;
-    isProceeding = false;
-    isWorking = false;
+    // Popup is open — wait a bit for comments to load then proceed
+    clearInterval(interval);
+    setTimeout(() => {
+      console.log(`💬 Messages loaded: ${message.length}`);
+      callback(message);
+    }, 1200);
 
-    console.log("🔁 Starting next loop...");
-
-    triggerNext("next loop");
-
-  }, timerBreakDelay);
+  }, 400);
 }
 
-// =========================
-// ▶️ ACTION CONTROL
-// =========================
-function clickPerAction(n) {
-  clickPerActionTarget = Number(n); // ✅ FIX: convert to number
-  clickPerActionCount  = 0;
-  triggerNext("start");
+
+// ========================
+// POST CLICK OPENER
+// ========================
+function findCommentButton(entry) {
+  // Strategy 1: via stored owl_coms attribute (fast, works if DOM still has it)
+  if (entry.owl_coms) {
+    const byAttr = document.querySelector(`[owl_coms="${entry.owl_coms}"]`);
+    if (byAttr) return byAttr;
+  }
+
+  // Strategy 2: find article by owl_gen, then find the comment button inside it
+  if (entry.owl_gen) {
+    const article = document.querySelector(`article[owl_gen="${entry.owl_gen}"]`);
+    if (article) {
+      const btn = article.querySelector('button[aria-label="Comment"]');
+      if (btn) {
+        // Re-tag it so future lookups via attr still work
+        if (!btn.hasAttribute("owl_coms") && entry.owl_coms) {
+          btn.setAttribute("owl_coms", entry.owl_coms);
+        }
+        return btn;
+      }
+    }
+  }
+
+  return null;
 }
 
-function commnet(params) {
-  comment = params;
+function delayOppner(delaySec) {
+  $("[owl_clsoe_com]").click();
+  message = [];
+
+  setTimeout(() => {
+    const entry = owl_data[countSelect];
+
+    if (!entry) {
+      
+      isWorking    = false;
+      isProceeding = false;
+      clickonce    = false;
+      return;
+    }
+
+    try {
+      const btn = findCommentButton(entry);
+
+      if (btn) {
+        btn.click();
+        console.log(`✅ Clicked comment button for index ${countSelect}`);
+      } else {
+        // Button not found — skip silently
+        isWorking    = false;
+        isProceeding = false;
+        clickonce    = false;
+        countSelect++;
+        setTimeout(() => triggerNext("skip"), 1000);
+        return;
+      }
+    } catch (e) {
+      // Skip silently on any error
+      isWorking    = false;
+      isProceeding = false;
+      clickonce    = false;
+      countSelect++;
+      setTimeout(() => triggerNext("skip"), 1000);
+      return;
+    }
+
+    countSelect++;
+  }, delaySec * 1000);
 }
 
-// =========================
-// 🔁 MAIN LOOP
-// =========================
+
+// ========================
+// TEXTAREA HELPERS
+// ========================
+function setTextareaValue(box, value) {
+  const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+  setter.call(box, value);
+  box.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function clearMessageBox(box) {
+  if (!box) return;
+  setTextareaValue(box, "");
+  box.blur();
+  box.focus();
+}
+
+
+// ========================
+// RESTRICT OBSERVER
+// ========================
+let isRestricted = false;
+
+function startRestrictObserver() {
+  isRestricted = false;
+  if (restrictObserver) restrictObserver.disconnect();
+
+  restrictObserver = new MutationObserver(() => {
+    const el = document.querySelector("[sirado]");
+    if (el && el.innerText.trim() !== "") {
+      console.log("🚫 Restricted detected");
+      $("[openthis]").click()
+      isRestricted = true;
+      restrictObserver.disconnect();
+      restrictObserver = null;
+    }
+  });
+
+  restrictObserver.observe(document.body, { childList: true, subtree: true });
+
+  // Auto-cleanup only — no triggerNext here, comment flow handles it
+  setTimeout(() => {
+    if (restrictObserver) {
+      restrictObserver.disconnect();
+      restrictObserver = null;
+    }
+  }, 16500);
+}
+
+
+// ========================
+// ACTION CONTROL
+// ========================
 function triggerNext(reason = "") {
   if (isProceeding || isWorking) return;
 
@@ -844,427 +455,250 @@ function triggerNext(reason = "") {
     isProceeding = false;
     clickonce    = false;
     onClickPerActionDone();
-    breakerRunner()
+    breakerRunner();
     return;
   }
 
   isProceeding = true;
   clickonce    = false;
 
-  console.log(`➡️ ${reason} | post ${clickPerActionCount + 1}/${clickPerActionTarget}`);
+  console.log(`➡️ [${reason}] post ${clickPerActionCount + 1}/${clickPerActionTarget}`);
 
   setTimeout(() => {
-    // ✅ FIX: Double-check BEFORE clicking
     if (clickPerActionCount >= clickPerActionTarget) {
       isProceeding = false;
       return;
     }
-
     isProceeding = false;
-    isWorking = true;
+    isWorking    = true;
     $("[openthis]").click();
   }, 2000);
 }
 
-// =========================
-//  AUTO-RESUME
-// =========================
-// $(document).ready(function () {
-//   setTimeout(() => {
-//     if (localStorage.getItem("auto_state")) {
-//       loadState();
-//     }
-//   }, 1500);
-// });
-function looperRun() {
-  const loopsVal = $('[loops]').val();
-  const isRefresh = $('[refresh_status]').is(':checked');
-
-  if (!loopsVal || loopsVal.trim() === "" || Number(loopsVal) <= 0) {
-    return;
-  }
-
-  if (!isRefresh) {
-    return;
-  }
-
-  setTimeout(() => {
-    $("[starts]").click();
-  }, 1000);
+function onClickPerActionDone() {
+  // handled by breakerRunner now
 }
 
-$(document).ready(function () {
-  looperRun()
-});
+function clickPerAction(n) {
+  clickPerActionTarget = Number(n);
+  clickPerActionCount  = 0;
+  triggerNext("start");
+}
+
+function fullStop() {
+  console.log("🛑 Full stop");
+  clickPerActionTarget = 0;
+  clickPerActionCount  = 0;
+  isProceeding         = false;
+  isWorking            = false;
+  clickonce            = false;
+  sent_once            = false;
+  countSelect          = 0;
+  if (breakerTimeout) { clearTimeout(breakerTimeout); breakerTimeout = null; }
+  if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
+}
 
 
-// =========================
-//  START BUTTON
-// =========================
-$(document).on("click", "[starts]", function () {
-  const loopsValss = $('[loops]').val();
-
-    const data_comment_event = {
-            mints: $('[mints]').val(),
-            time: $('[time]').val(),
-            manypost: $('[manypost]').val(),
-            loops: $('[loops]').val(),
-            comments: $('[comments]').val(),
-            refresh_status: $('[refresh_status]').is(':checked')
-        };
-
-
-    if (loopsValss || loopsValss.trim() === "" || Number(loopsValss) === 0) {
-      setTimeout(() => {
-        // timerBreak(timerConverter_mil({
-        //   status:`${data_comment_event["mints"]}`,
-        //   timer:Number(data_comment_event["time"])
-        // }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"]);
-    
-        breakerSet(timerConverter_mil({
-            status:`${data_comment_event["mints"]}`,
-            timer:Number(data_comment_event["time"])
-          }), Number(data_comment_event["loops"]), data_comment_event["refresh_status"])
-    
-        commnet(`${data_comment_event["comments"]}`);
-        clickPerAction(data_comment_event["manypost"]); // ✅ Number() handled inside clickPerAction na
-    
-      }, 1000);
-      return
-    }else{
-      alert("Loop Are Empty")
-    }
-});
-
-
-// =========================
-//  STOP BUTTON
-// =========================
-$(document).on("click", "[stopoperation]", function(){
-  breakerStop()
-  clickPerActionStop()
-})
-
-// =========================
-//  COMMENT FLOW
-// =========================
+// ========================
+// COMMENT FLOW
+// ========================
 $(document).on("click", "[openthis]", function () {
   if (clickonce) return;
-
   clickonce = true;
+
   delayOppner(1);
+  startRestrictObserver();
 
-setTimeout(() => {
   try {
-    insfections();
+    // Step 1: Wait for popup to open
+    waitForCommentBox(box => {
 
-    waitForCommentBox((box) => {
+      // Step 2: Wait for existing comments to load FIRST — check duplicate before typing
+      waitForMessage(msg => {
 
-      const nativeSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLTextAreaElement.prototype,
-        "value"
-      ).set;
-
-      nativeSetter.call(box, comment);
-      box.dispatchEvent(new Event("input", { bubbles: true }));
-
-      waitForMessage((msg) => {
-        let success = true;
-
-        const found = msg.some(x => {
-          if (x.comment === comment) {
-            console.log("🔄 Duplicate detected, clearing message...");
-
+          // Check: restricted?
+          if (isRestricted) {
+            console.log("🚫 Restricted — skipping post");
+            $("[owl_clsoe_com]").click();
+            if (commentObserver) { commentObserver.disconnect(); commentObserver = null; }
             clickonce    = false;
             isProceeding = false;
             isWorking    = false;
-
-            clearMessageBox(box);
-
-            setTimeout(() => {
-              $("[openthis]").click();
-            }, 2000);
-
-            success = false;
-            return true;
+            setTimeout(() => triggerNext("restricted skip"), 2000);
+            return;
           }
-        });
 
-        if (success && !found) {
-          clickPerActionCount++;
-          console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
+          // Check: duplicate?
+          const isDuplicate = msg.some(x => x.comment === comment);
+          if (isDuplicate) {
+            console.log("🔄 Duplicate detected — skipping without typing");
+            $("[owl_clsoe_com]").click();
+            if (commentObserver) { commentObserver.disconnect(); commentObserver = null; }
+            clickonce    = false;
+            isProceeding = false;
+            isWorking    = false;
+            setTimeout(() => triggerNext("duplicate skip"), 2000);
+            return;
+          }
 
-          if (!sent_once) {
+          // Step 3: Safe to type — no duplicate found
+          console.log("✏️ No duplicate — typing comment");
+          setTextareaValue(box, comment);
+
+          // Step 4: Send
+          setTimeout(() => {
+            clickPerActionCount++;
+            console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
+
+            if (!sent_once) {
               sent_once = true;
-            $("[owl_sent]").click();
+              $("[owl_sent]").click();
+              setTimeout(() => { sent_once = false; }, 600);
+            }
 
-            setTimeout(() => {
-              sent_once = false;
-            }, 600);
-          }
-        }
+            if (commentObserver) { commentObserver.disconnect(); commentObserver = null; }
+            if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
 
-        if (window.commentObserver) {
-          window.commentObserver.disconnect();
-          window.commentObserver = null;
-        }
+            isWorking = false;
+            triggerNext("success");
+          }, 500);
 
-        isWorking = false;
-
-        if (success) triggerNext("success");
+        }, () => {
+          // Timeout — popup never opened, skip safely
+          $("[owl_clsoe_com]").click();
+          if (commentObserver) { commentObserver.disconnect(); commentObserver = null; }
+          if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
+          clickonce    = false;
+          isProceeding = false;
+          isWorking    = false;
+          setTimeout(() => triggerNext("message timeout skip"), 2000);
+        });
       });
 
-    });
-
   } catch (e) {
-    console.error("❌ Error:", e);
-
+    console.error("❌ Error in comment flow:", e);
     clickonce    = false;
     isProceeding = false;
     isWorking    = false;
   }
-}, 1000);
 });
 
 
-function clearMessageBox(box) {
-  if (!box) return;
-
-  const nativeSetter = Object.getOwnPropertyDescriptor(
-    window.HTMLTextAreaElement.prototype,
-    "value"
-  ).set;
-
-  nativeSetter.call(box, "");
-  box.dispatchEvent(new Event("input", { bubbles: true }));
-  box.blur();
-  box.focus();
-}
-
-
-// =========================
-//  RESTRICT CHECK
-// =========================
-function insfections() {
-  startObserve();
-}
-
-function startObserve() {
-  if (window.restrictObserver) {
-    window.restrictObserver.disconnect();
-  }
-
-  window.restrictObserver = new MutationObserver(() => {
-    const el = document.querySelector("[sirado]");
-
-    if (el && el.innerText.trim() !== "") {
-      console.log("🚫 Restricted - skip");
-      window.restrictObserver.disconnect();
-
-      isWorking = false;
-
-      setTimeout(() => {
-        triggerNext("restricted skip");
-      }, 1000);
-    }
-  });
-
-  window.restrictObserver.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
-
-  setTimeout(() => {
-    if (window.restrictObserver) {
-      window.restrictObserver.disconnect();
-      isWorking = false;
-      triggerNext("observer timeout");
-    }
-  }, 10000);
-}
-    // if ($target.is('[sirado]')) {
-
-
-
-// gusto nako baguhon ni buhatan nako function 
-// atoCom("NICE", 5, 2, 5000)
-
-
-
-// atoCom(comm, delaySec, perPost, breakTime) 
- 
-
-
-// comm      = kung unsa ang comment akung eh post
-// delaySec  = delay kung pila ka second haya mag pili ug lain na post
-// perPost   = kung pila ka post ang eh comment
-// breakTime = pag na comment na nimo tanan post na ge asign sa perPost mag break siya unya pag ma hurot na oras sa break mo balik napud siya loop
-
-// and ang gamit gyud ani is kwaon ang comments startObserving()
-// haya siya mag post eh check sa niya ang username ug ang comment kung same kung parihas dili na eh post ug ma escape na
-// sa lain comment ug dili na mag delay 
-
-// tapus ang delay wala ge gana ug ayu murag same same ra sila sa break mali ni
-
-// atoCom("NICE", 5, 2, 10000, true)
-
-
-// ani man gud dapat example
-
-// atoCom("NICE", 5, 2, 10000, true)
-
-// delay 5sec
-// post "NICE"
-// delay 5sec
-// post "NICE"
-// break 10sec
-// repeat
-// delay 5sec
-// post "NICE"
-// delay 5sec
-// post "NICE"
-// break 10sec
-
-// balik balik lang hantud
-
-
-
-
-
-
-// SET CONFIG
+// ========================
+// BREAKER (LOOP / BREAK)
+// ========================
 function breakerSet(delay, loop, refresh) {
   const config = { delay, loop, refresh };
   localStorage.setItem(BREAKER_CONFIG, JSON.stringify(config));
-
-  // reset state every set
   localStorage.setItem(BREAKER_STATE, loop);
   localStorage.setItem(BREAKER_STOP, "false");
-
-  console.log("breaker config set:", config);
+  console.log("Breaker config set:", config);
 }
-// breakerSet(10000, 3, true)
 
-
-
-// RUN LOGIC
 function breakerRunner() {
-  const config = JSON.parse(localStorage.getItem(BREAKER_CONFIG));
-  let currentLoop = parseInt(localStorage.getItem(BREAKER_STATE));
-  const isStopped = localStorage.getItem(BREAKER_STOP) === "true";
+  const config      = JSON.parse(localStorage.getItem(BREAKER_CONFIG));
+  const currentLoop = parseInt(localStorage.getItem(BREAKER_STATE));
+  const isStopped   = localStorage.getItem(BREAKER_STOP) === "true";
 
-  if (!config) {
-    console.log("No config found. Please run breakerSet()");
-    $('[loops]').val("")
-    setTimeout(() => {
-      saveData()
-    }, 600);
-    return;
-  }
-
-  if (isStopped) {
-    console.log("breaker stopped.");
-    $('[loops]').val("")
-    setTimeout(() => {
-      saveData()
-    }, 600);
-    return;
-  }
-
-  if (currentLoop <= 0) {
-    console.log("finish / stop");
-    $('[loops]').val("")
+  if (!config || isStopped || currentLoop <= 0) {
+    console.log(isStopped ? "Breaker stopped." : "Breaker done / no config.");
+    $('[loops]').val("");
     breakerClear();
     return;
   }
 
-  console.log(`delay: ${config.delay / 1000} secs`);
+  console.log(`⏳ Break ${config.delay / 1000}s | loops left: ${currentLoop}`);
 
   breakerTimeout = setTimeout(() => {
-    const nextValue = currentLoop - 1;
-
-    console.log(`loop: ${currentLoop}`);
-    console.log(nextValue);
-
-    $('[loops]').val(nextValue)
-    setTimeout(() => {
-      saveData()
-    }, 600);
-
-    localStorage.setItem(BREAKER_STATE, nextValue);
+    const nextLoop = currentLoop - 1;
+    $('[loops]').val(nextLoop);
+    localStorage.setItem(BREAKER_STATE, nextLoop);
+    setTimeout(autoSave, 300);
 
     breakerTimeout = setTimeout(() => {
-      console.log(`settimeout: 1sec refresh: ${config.refresh}`);
-
       if (config.refresh) {
-        setTimeout(() => {
-          location.reload();
-        }, 10000);
-        // alert("LoL")
-      }else{
-
+        console.log("🔄 Refreshing page...");
+        setTimeout(() => location.reload(), 1000);
+      } else {
         if (!sent_once) {
-          sent_once = true
-          $("[starts]").click()
-
-          setTimeout(() => {
-            sent_once = false
-          }, 600);
+          sent_once = true;
+          $("[starts]").click();
+          setTimeout(() => { sent_once = false; }, 600);
         }
       }
     }, 1000);
-
   }, config.delay);
-}  
-
-// STOP LOGIC
-function breakerStop() {
-  localStorage.setItem(BREAKER_STOP, "true");
-
-  if (breakerTimeout) {
-    clearTimeout(breakerTimeout);
-  }
-
-  console.log("breaker manually stopped.");
 }
 
-// CLEAR ALL
+function breakerStop() {
+  localStorage.setItem(BREAKER_STOP, "true");
+  if (breakerTimeout) { clearTimeout(breakerTimeout); breakerTimeout = null; }
+  console.log("Breaker stopped.");
+}
+
 function breakerClear() {
   localStorage.removeItem(BREAKER_CONFIG);
   localStorage.removeItem(BREAKER_STATE);
   localStorage.removeItem(BREAKER_STOP);
-
-  if (breakerTimeout) {
-    clearTimeout(breakerTimeout);
-  }
-
-  console.log("breaker cleared.");
+  if (breakerTimeout) { clearTimeout(breakerTimeout); breakerTimeout = null; }
+  console.log("Breaker cleared.");
 }
 
 
+// ========================
+// AUTO-RESUME ON REFRESH
+// ========================
+function looperRun() {
+  const loopsVal  = $('[loops]').val();
+  const isRefresh = $('[refresh_status]').is(':checked');
 
+  // Only auto-resume if: loops has a value > 0 AND refresh is checked
+  if (!loopsVal || loopsVal.trim() === "" || Number(loopsVal) <= 0 || !isRefresh) return;
 
-function clickPerActionStop() {
-  console.log("🛑 Stopping clickPerAction...");
-
-  // Reset all running states
-  clickPerActionTarget = 0;
-  clickPerActionCount  = 0;
-
-  isProceeding = false;
-  isWorking    = false;
-
-  clickonce = false;
-
-  // Stop breaker if running
-  timerBreakTarget = 0;
-  timerBreakReps   = 0;
-
-  // Clear pending timeout if any
-  if (breakerTimeout) {
-    clearTimeout(breakerTimeout);
-    breakerTimeout = null;
-  }
-
-  console.log("✅ Fully stopped.");
+  setTimeout(() => $("[starts]").click(), 1500);
 }
+
+$(document).ready(looperRun);
+
+
+// ========================
+// START BUTTON
+// ========================
+$(document).on("click", "[starts]", function () {
+  const loopsVal = $('[loops]').val();
+
+  // Reset counters on fresh start
+  countSelect         = 0;
+  clickPerActionCount = 0;
+  isProceeding        = false;
+  isWorking           = false;
+  clickonce           = false;
+
+  const cfg = {
+    mints:          $('[mints]').val(),
+    time:           $('[time]').val(),
+    manypost:       $('[manypost]').val(),
+    loops:          loopsVal,
+    comments:       $('[comments]').val(),
+    refresh_status: $('[refresh_status]').is(':checked')
+  };
+
+  comment = cfg.comments;
+
+  breakerSet(
+    timerConverter_mil({ status: cfg.mints, timer: cfg.time }),
+    Number(cfg.loops),
+    cfg.refresh_status
+  );
+
+  clickPerAction(cfg.manypost);
+});
+
+
+// ========================
+// STOP BUTTON
+// ========================
+$(document).on("click", "[stopoperation]", function () {
+  breakerStop();
+  fullStop();
+});
