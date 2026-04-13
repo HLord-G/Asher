@@ -1,3 +1,7 @@
+// ============================================================
+// OWL BOT - OPTIMIZED (Background Tab Fix)
+// ============================================================
+
 // ========================
 // GLOBALS
 // ========================
@@ -125,9 +129,13 @@ $("body").append(`
       </div>
 
       <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:#c77dffff;">Post Count</label><br>
-        <input type="number" manypost placeholder="How many posts"
-          style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+        <label style="font-size:12px;color:#c77dffff;">Post Count</label>
+        <div style="display:flex;gap:5px;margin-top:5px;">
+          <input type="number" manypost placeholder="Total"
+            style="width:50%;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+          <input type="number" manypost_remaining placeholder="Remaining" disabled
+            style="width:50%;padding:5px;background:#240046ff;color:#a0a0a0;border:none;border-radius:6px;cursor:not-allowed;pointer-events:none;">
+        </div>
       </div>
 
       <div style="margin-bottom:10px;">
@@ -540,6 +548,8 @@ function fullStop() {
   if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
 
   stopCountdown();
+  updateLoopDisplay(0, 0);
+  $('[manypost_remaining]').val("");
   setStartBtn("idle");
 }
 
@@ -587,6 +597,8 @@ $(document).on("click", "[openthis]", function () {
 
           setTimeout(() => {
             clickPerActionCount++;
+            const remaining = clickPerActionTarget - clickPerActionCount;
+            $('[manypost_remaining]').val(remaining >= 0 ? remaining : 0);
             console.log(`✅ Post ${clickPerActionCount}/${clickPerActionTarget}`);
 
             if (!sent_once) {
@@ -666,11 +678,23 @@ function stopCountdown() {
 // ========================
 // BREAKER (LOOP / BREAK)
 // ========================
+function updateLoopDisplay(remaining, total) {
+  const display = $('[loop_display]');
+  if (!total || total <= 0) {
+    display.hide();
+    $('[loops_used]').val("");
+    return;
+  }
+  display.show().text(`${remaining} / ${total}`);
+  $('[loops_used]').val(remaining);
+}
+
 function breakerSet(delay, loop, refresh) {
-  const config = { delay, loop, refresh };
+  const config = { delay, loop, refresh, total: loop };
   localStorage.setItem(BREAKER_CONFIG, JSON.stringify(config));
   localStorage.setItem(BREAKER_STATE, loop);
   localStorage.setItem(BREAKER_STOP, "false");
+  updateLoopDisplay(loop, loop);
   console.log("Breaker config set:", config);
 }
 
@@ -684,11 +708,13 @@ function breakerRunner() {
     $('[loops]').val("");
     stopCountdown();
     setStartBtn("idle");
+    updateLoopDisplay(0, 0);
     breakerClear();
     return;
   }
 
   console.log(`⏳ Break ${config.delay / 1000}s | loops left: ${currentLoop}`);
+  updateLoopDisplay(currentLoop, config.total || currentLoop);
   setStartBtn("break");
   startCountdown(config.delay);
 
@@ -696,6 +722,7 @@ function breakerRunner() {
     const nextLoop = currentLoop - 1;
     $('[loops]').val(nextLoop);
     localStorage.setItem(BREAKER_STATE, nextLoop);
+    updateLoopDisplay(nextLoop, config.total || currentLoop);
     setTimeout(autoSave, 300);
 
     breakerTimeout = setTimeout(() => {
@@ -766,6 +793,7 @@ $(document).on("click", "[starts]", function () {
   };
 
   comment = cfg.comments;
+  $('[manypost_remaining]').val(Number(cfg.manypost));
 
   breakerSet(
     timerConverter_mil({ status: cfg.mints, timer: cfg.time }),
@@ -801,10 +829,6 @@ function setStartBtn(state) {
     btn.text("START").css("background", "#7b2cbf");      // default purple
   }
 }
-
-
-
-
 
 
 
