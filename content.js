@@ -1,7 +1,3 @@
-// ============================================================
-// OWL BOT - OPTIMIZED
-// ============================================================
-
 // ========================
 // GLOBALS
 // ========================
@@ -36,6 +32,58 @@ let debounceTimer     = null;
 
 // Countdown
 let countdownInterval = null;
+let version = "0.1"
+
+
+// ========================
+// WEB WORKER TIMER (background-safe)
+// Prevents browser throttling when tab is inactive
+// ========================
+const workerBlob = new Blob([`
+  self.onmessage = function(e) {
+    const { id, ms } = e.data;
+    setTimeout(function() { self.postMessage({ id: id }); }, ms);
+  };
+`], { type: "application/javascript" });
+
+const timerWorker = new Worker(URL.createObjectURL(workerBlob));
+const pendingTimers = {};
+
+timerWorker.onmessage = function(e) {
+  const { id } = e.data;
+  if (pendingTimers[id]) {
+    pendingTimers[id]();
+    delete pendingTimers[id];
+  }
+};
+
+function wait(ms) {
+  return new Promise(resolve => {
+    const id = generateID();
+    pendingTimers[id] = resolve;
+    timerWorker.postMessage({ id, ms });
+  });
+}
+
+// ========================
+// WEB WORKER COUNTDOWN (background-safe)
+// ========================
+const countdownWorkerBlob = new Blob([`
+  var interval = null;
+  self.onmessage = function(e) {
+    if (e.data === 'stop') {
+      clearInterval(interval);
+      interval = null;
+      return;
+    }
+    if (e.data === 'start') {
+      clearInterval(interval);
+      interval = setInterval(function() { self.postMessage('tick'); }, 1000);
+    }
+  };
+`], { type: "application/javascript" });
+
+const countdownWorker = new Worker(URL.createObjectURL(countdownWorkerBlob));
 
 
 // ========================
@@ -44,7 +92,7 @@ let countdownInterval = null;
 $("body").append(`
   <div style="position:fixed;bottom:20%;right:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
 
-    <div style="
+    <div mainBox style="
       z-index:9999;
       width:100%;
       display:flex;
@@ -55,14 +103,15 @@ $("body").append(`
       <div style="background:#10002bff; border: 1px solid white; border-bottom: none; padding:10px; color:#fff;">
         <span time_hr>00</span>:<span time_min>00</span>:<span time_sec>00</span>
       </div>
-      <button id="menuBtn" style="padding:3px;background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
-        <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor">
-          <path d="M440-280h80l12-60q12-5 22.5-10.5T576-364l58 18 40-68-46-40q2-14 2-26t-2-26l46-40-40-68-58 18q-11-8-21.5-13.5T532-620l-12-60h-80l-12 60q-12 5-22.5 10.5T384-596l-58-18-40 68 46 40q-2 14-2 26t2 26l-46 40 40 68 58-18q11 8 21.5 13.5T428-340l12 60Zm-16.5-143.5Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/>
-        </svg>
-      </button>
+
+      <div>
+          <div id="" style="padding:8px; font-size:9px; background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
+         V ${version}
+          </div>
+      </div>
     </div>
 
-    <div id="mainBox" style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:0px 0px 12px 12px;font-family:sans-serif;color:#fff;">
+    <div mainBox style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:0px 0px 12px 12px;font-family:sans-serif;color:#fff;">
 
       <div style="margin-bottom:10px;">
         <label style="font-size:12px;color:#c77dffff;">Break</label><br>
@@ -109,7 +158,7 @@ $("body").append(`
   </div>
 `);
 
-$(document).on("click", "#menuBtn", () => $("#mainBox").toggle());
+$(document).on("click", "#menuBtn", () => $("[mainBox]").toggle());
 
 
 // ========================
@@ -158,10 +207,6 @@ function generateID(length = 15) {
 function timerConverter_mil({ status, timer }) {
   const map = { hrs: 3600000, mins: 60000, sec: 1000 };
   return (map[status] || 0) * Number(timer);
-}
-
-function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function getAvatar(imgEl) {
@@ -437,7 +482,7 @@ function startRestrictObserver() {
       restrictObserver.disconnect();
       restrictObserver = null;
     }
-  }, 16500);
+  }, 3000);
 }
 
 
@@ -495,7 +540,7 @@ function fullStop() {
   if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
 
   stopCountdown();
-  setStartBtn("idle"); // ← ADDED
+  setStartBtn("idle");
 }
 
 
@@ -578,27 +623,26 @@ $(document).on("click", "[openthis]", function () {
 
 
 // ========================
-// COUNTDOWN DISPLAY
+// COUNTDOWN DISPLAY (background-safe via Web Worker)
 // ========================
 function startCountdown(ms) {
-  // Clear any existing countdown first
   stopCountdown();
 
   let remaining = ms;
-
-  // Show initial value immediately
   updateCountdownDisplay(remaining);
 
-  countdownInterval = setInterval(() => {
+  countdownWorker.onmessage = function() {
     remaining -= 1000;
     if (remaining <= 0) {
       remaining = 0;
       updateCountdownDisplay(remaining);
-      stopCountdown();
+      countdownWorker.postMessage('stop');
       return;
     }
     updateCountdownDisplay(remaining);
-  }, 1000);
+  };
+
+  countdownWorker.postMessage('start');
 }
 
 function updateCountdownDisplay(ms) {
@@ -612,11 +656,7 @@ function updateCountdownDisplay(ms) {
 }
 
 function stopCountdown() {
-  if (countdownInterval) {
-    clearInterval(countdownInterval);
-    countdownInterval = null;
-  }
-  // Reset display to 00:00:00
+  countdownWorker.postMessage('stop');
   $("[time_hr]").text("00");
   $("[time_min]").text("00");
   $("[time_sec]").text("00");
@@ -643,13 +683,13 @@ function breakerRunner() {
     console.log(isStopped ? "Breaker stopped." : "Breaker done / no config.");
     $('[loops]').val("");
     stopCountdown();
-    setStartBtn("idle"); // ← ADDED
+    setStartBtn("idle");
     breakerClear();
     return;
   }
 
   console.log(`⏳ Break ${config.delay / 1000}s | loops left: ${currentLoop}`);
-  setStartBtn("break"); // ← ADDED: show break state while waiting
+  setStartBtn("break");
   startCountdown(config.delay);
 
   breakerTimeout = setTimeout(() => {
@@ -714,7 +754,7 @@ $(document).on("click", "[starts]", function () {
   isProceeding        = false;
   isWorking           = false;
   clickonce           = false;
-  sent_once           = false; // ← ADDED: ensure clean state on every start
+  sent_once           = false;
 
   const cfg = {
     mints:          $('[mints]').val(),
@@ -733,7 +773,7 @@ $(document).on("click", "[starts]", function () {
     cfg.refresh_status
   );
 
-  setStartBtn("running"); // ← ADDED
+  setStartBtn("running");
   clickPerAction(cfg.manypost);
 });
 
@@ -744,7 +784,7 @@ $(document).on("click", "[starts]", function () {
 $(document).on("click", "[stopoperation]", function () {
   breakerStop();
   fullStop();
-  setStartBtn("idle"); // ← ADDED
+  setStartBtn("idle");
 });
 
 
@@ -761,3 +801,578 @@ function setStartBtn(state) {
     btn.text("START").css("background", "#7b2cbf");      // default purple
   }
 }
+
+
+
+
+
+
+
+
+
+
+//======================================================================================================================================================= Messages 
+// let isPopupOpen = false;
+// let keepOpenInterval = null;
+
+// function stopKeepingOpen() {
+//   if (keepOpenInterval) {
+//     clearInterval(keepOpenInterval);
+//     keepOpenInterval = null;
+//   }
+// }
+
+// function closePopup() {
+//   stopKeepingOpen();
+//   const popup = document.querySelector('.DxQ0f');
+//   if (popup) popup.style.display = 'none';
+//   isPopupOpen = false;
+// }
+
+// function openPopup() {
+//   const popup = document.querySelector('.DxQ0f');
+
+//   if (!popup) {
+//     document.querySelector('[aria-label="Messages"]')?.click();
+//   } else {
+//     popup.style.display = 'block';
+//   }
+
+//   // Keep it open every 500ms
+//   keepOpenInterval = setInterval(() => {
+//     const p = document.querySelector('.DxQ0f');
+//     if (!p) {
+//       document.querySelector('[aria-label="Messages"]')?.click();
+//     } else {
+//       p.style.display = 'block';
+//     }
+//   }, 500);
+
+//   isPopupOpen = true;
+// }
+
+// // Toggle on [messagestart] click
+// $(document).on("click", "[messagestart]", function () {
+//   if (isPopupOpen) {
+//     closePopup();
+//   } else {
+//     openPopup();
+//   }
+// });
+
+
+
+let collectedData = [];
+let isScrolling = false;
+let isSending = false;
+let stopSending = false;
+let observer = null;
+
+const DB_NAME = 'TumblrScraper';
+const DB_STORE = 'conversations';
+const DB_VERSION = 1;
+
+// ==================== IndexedDB ====================
+
+function openDB() {
+  return new Promise(function (resolve, reject) {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = function (e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(DB_STORE)) {
+        db.createObjectStore(DB_STORE, { keyPath: 'username' });
+      }
+    };
+    req.onsuccess = function (e) { resolve(e.target.result); };
+    req.onerror = function (e) { reject(e.target.error); };
+  });
+}
+
+function getAllFromDB() {
+  return openDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).getAll();
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  });
+}
+
+function saveToDB(item) {
+  return openDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      const store = tx.objectStore(DB_STORE);
+      const getReq = store.get(item.username);
+      getReq.onsuccess = function () {
+        if (getReq.result) {
+          resolve('exists');
+        } else {
+          const putReq = store.put(item);
+          putReq.onsuccess = function () { resolve('saved'); };
+          putReq.onerror = function () { reject(putReq.error); };
+        }
+      };
+      getReq.onerror = function () { reject(getReq.error); };
+    });
+  });
+}
+
+function updateMsgInDB(username, msgStatus) {
+  return openDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      const store = tx.objectStore(DB_STORE);
+      const getReq = store.get(username);
+      getReq.onsuccess = function () {
+        const record = getReq.result;
+        if (record) {
+          record.msg = msgStatus;
+          const putReq = store.put(record);
+          putReq.onsuccess = function () { resolve('updated'); };
+          putReq.onerror = function () { reject(putReq.error); };
+        } else {
+          resolve('not found');
+        }
+      };
+      getReq.onerror = function () { reject(getReq.error); };
+    });
+  });
+}
+
+// ==================== UI ====================
+
+function injectUI() {
+  if (document.getElementById('tsBtnWrapper')) return;
+
+  const target = document.querySelector('.ACnga');
+  if (!target) {
+    // Retry kung wala pa ang .ACnga
+    setTimeout(injectUI, 1000);
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'tsBtnWrapper';
+  wrapper.style.cssText = `
+    display: flex;
+    flex-flow: row;
+    gap: 2px;
+    align-items: center;
+    margin-bottom:10px;
+    width:100%;
+  `;
+
+  const startBtn = document.createElement('button');
+  startBtn.id = 'tsStartBtn';
+  startBtn.innerText = '▶ Start Messaging';
+  startBtn.style.cssText = `
+    padding: 10px 12px;
+    cursor: pointer;
+    background: #00b894;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 12px;
+  `;
+
+  const stopBtn = document.createElement('button');
+  stopBtn.id = 'tsStopBtn';
+  stopBtn.innerText = '⏹ Stop';
+  stopBtn.style.cssText = `
+    padding: 10px 12px;
+    cursor: pointer;
+    background: #d63031;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 12px;
+  `;
+
+
+  const purpleBtn = document.createElement('button');
+purpleBtn.id = 'menuBtn';
+purpleBtn.innerText = 'Bot Setup';
+purpleBtn.style.cssText = `
+  padding: 10px 12px;
+  margin-bottom:10px;
+  cursor: pointer;
+  background: #7b2cbf;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  width: 90%;
+`;
+
+wrapper.appendChild(startBtn);
+wrapper.appendChild(stopBtn);
+target.prepend(wrapper);
+target.prepend(purpleBtn);
+
+  purpleBtn.addEventListener('click', function () {
+  // logic here
+  });
+
+  startBtn.addEventListener('click', function () {
+    stopSending = false;
+    sendToAllPending();
+  });
+
+  stopBtn.addEventListener('click', function () {
+    stopSending = true;
+    isSending = false;
+    const btn = document.getElementById('tsStartBtn');
+    if (btn) btn.innerText = '▶ Start Messaging';
+  });
+}
+
+function setStatus(msg) {
+  // ✅ console.log lang, wala nay UI display
+  console.log('[Status]', msg);
+}
+
+
+// ==================== Scraper ====================
+
+function extractConversations() {
+  const buttons = document.querySelectorAll('.ftU4D button[aria-label="Conversation"]');
+  console.log('🔍 Buttons found:', buttons.length);
+
+  buttons.forEach(function (btn) {
+    const username = btn.querySelector('.pTvJc')?.innerText.trim();
+    const srcset = btn.querySelector('img.nLowv')?.getAttribute('srcset') || '';
+
+    let image = '';
+    srcset.split(',').map(s => s.trim()).forEach(part => {
+      if (part.includes('512w')) image = part.replace('512w', '').trim();
+    });
+
+    if (!username) return;
+
+    const inMemory = collectedData.some(d => d.username === username);
+    if (!inMemory) {
+      const item = { username, image, msg: false };
+      collectedData.push(item);
+      saveToDB(item).then(function (status) {
+        console.log(status === 'saved' ? '💾 Saved:' : '⏭️ Exists:', username);
+      });
+    }
+  });
+
+  console.clear();
+  console.log('📋 Total:', collectedData.length);
+  console.table(collectedData);
+}
+
+function findScrollableContainer() {
+  const ftU4D = document.querySelector('.ftU4D');
+  if (!ftU4D) return null;
+  let el = ftU4D;
+  while (el) {
+    if (el.scrollHeight > el.clientHeight) return el;
+    el = el.parentElement;
+  }
+  return null;
+}
+
+function startObserver(target) {
+  if (observer) observer.disconnect();
+  observer = new MutationObserver(function (mutations) {
+    let hasNew = false;
+    mutations.forEach(function (m) { if (m.addedNodes.length > 0) hasNew = true; });
+    if (hasNew) extractConversations();
+  });
+  observer.observe(target, { childList: true, subtree: true });
+}
+
+// ==================== Messaging ====================
+
+function waitForElement(selector, root, timeout) {
+  root = root || document.body;
+  timeout = timeout || 5000;
+  return new Promise(function (resolve) {
+    const existing = root.querySelector(selector);
+    if (existing) { resolve(existing); return; }
+    const obs = new MutationObserver(function () {
+      const el = root.querySelector(selector);
+      if (el) { obs.disconnect(); resolve(el); }
+    });
+    obs.observe(root, { childList: true, subtree: true });
+    setTimeout(function () { obs.disconnect(); resolve(null); }, timeout);
+  });
+}
+
+function findChatWindowByUsername(username) {
+  const chatWindows = document.querySelectorAll('.hpABw');
+  for (const win of chatWindows) {
+    const links = win.querySelectorAll('.BSUG4');
+    for (const link of links) {
+      const name = (link.innerText || link.getAttribute('title') || '').trim();
+      if (name === username) return win;
+    }
+  }
+  return null;
+}
+
+async function sendMessageTo(username, message) {
+  // Step 1: I-open ang Messages panel una
+  const messagesBtn = document.querySelector('button[aria-label="Messages"]');
+  if (!messagesBtn) {
+    console.warn('❌ Messages button not found!');
+    return false;
+  }
+
+  messagesBtn.click();
+  console.log('🖱️ Clicked Messages button');
+
+  // Step 2: Hulat ang .ftU4D ma-load
+  setStatus(`Waiting for panel...`);
+  let ftU4D = null;
+  let panelTries = 0;
+
+  while (!ftU4D && panelTries < 20) {
+    await new Promise(r => setTimeout(r, 500));
+    ftU4D = document.querySelector('.ftU4D');
+    panelTries++;
+  }
+
+  if (!ftU4D) {
+    console.warn('❌ .ftU4D never appeared!');
+    return false;
+  }
+
+  console.log('✅ .ftU4D loaded!');
+
+  // Step 3: Pangitaon ang conversation button sa list
+  const buttons = ftU4D.querySelectorAll('button[aria-label="Conversation"]');
+  let clicked = false;
+
+  for (const btn of buttons) {
+    const name = btn.querySelector('.pTvJc')?.innerText.trim();
+    if (name === username) {
+      btn.click();
+      clicked = true;
+      console.log('🖱️ Clicked conversation:', username);
+      break;
+    }
+  }
+
+  if (!clicked) {
+    console.warn('❌ Conversation button not found:', username);
+    return false;
+  }
+
+  // Step 4: Hulat ang chat window .hpABw ma-appear
+  setStatus(`Opening: ${username}`);
+  let chatWin = null;
+  let tries = 0;
+
+  while (!chatWin && tries < 20) {
+    await new Promise(r => setTimeout(r, 500));
+    chatWin = findChatWindowByUsername(username);
+    tries++;
+  }
+
+  if (!chatWin) {
+    console.warn('❌ Chat window not found:', username);
+    return false;
+  }
+
+  console.log('✅ Chat window found:', username);
+
+  // Step 5: Hulat textarea
+  const textarea = await waitForElement('textarea.xXTjk', chatWin, 5000);
+  if (!textarea) {
+    console.warn('❌ Textarea not found:', username);
+    return false;
+  }
+
+  // Step 6: Type ang message
+  textarea.focus();
+  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+  nativeSetter.call(textarea, message);
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  textarea.dispatchEvent(new Event('change', { bubbles: true }));
+
+  setStatus(`Typing: ${username}`);
+  await new Promise(r => setTimeout(r, 1000));
+
+  // Step 7: Hulat Send button ma-enable
+  let sendBtn = null;
+  let sendTries = 0;
+
+  while (sendTries < 15) {
+    sendBtn = chatWin.querySelector('button[aria-label="Send"]');
+    if (sendBtn && !sendBtn.disabled) break;
+    await new Promise(r => setTimeout(r, 300));
+    sendTries++;
+  }
+
+  if (!sendBtn || sendBtn.disabled) {
+    console.warn('❌ Send button not ready:', username);
+    return false;
+  }
+
+  // Step 8: Send!
+  sendBtn.click();
+  setStatus(`Sent: ${username}`);
+  console.log('📤 Sent:', username);
+
+  // Step 9: Wait before closing
+  await new Promise(r => setTimeout(r, 1000));
+
+  return true;
+}
+
+async function sendToAllPending() {
+  if (isSending) return;
+  isSending = true;
+  stopSending = false;
+
+  const startBtn = document.getElementById('tsStartBtn');
+  if (startBtn) startBtn.innerText = '⏳ Listening...';
+
+  // ✅ Infinite loop — mo-stop lang kung gi-click ang Stop
+  while (!stopSending) {
+    const allData = await getAllFromDB();
+    const pending = allData.filter(d => d.msg === false);
+
+    if (pending.length === 0) {
+      // Walay pending — mag-hulat lang ug 5s then check usab
+      await new Promise(r => setTimeout(r, 5000));
+      continue;
+    }
+
+    let sentCount = 0;
+
+    for (let i = 0; i < pending.length; i++) {
+      if (stopSending) break;
+
+      const item = pending[i];
+      console.log(`➡️ [${i + 1}/${pending.length}] Sending to:`, item.username);
+
+      const sent = await sendMessageTo(item.username, 'hi im Gwagrabledra');
+
+      if (stopSending) break;
+
+      if (sent) {
+        sentCount++;
+        const memItem = collectedData.find(d => d.username === item.username);
+        if (memItem) memItem.msg = true;
+        await updateMsgInDB(item.username, true);
+        console.log('✅ msg=true:', item.username);
+      } else {
+        console.warn('⚠️ Failed:', item.username);
+      }
+
+      if (!stopSending && i < pending.length - 1) {
+        await new Promise(r => setTimeout(r, 3000));
+      }
+    }
+
+    if (!stopSending) {
+      console.log(`✅ Batch done. Sent: ${sentCount}. Checking again in 5s...`);
+      // ✅ Mag-hulat 5s then mag-check usab kung naay bag-o
+      await new Promise(r => setTimeout(r, 5000));
+    }
+  }
+
+  isSending = false;
+  if (startBtn) startBtn.innerText = '▶ Start Messaging';
+  console.log('⏹ Stopped.');
+}
+
+
+
+// ==================== Scrape Flow ====================
+
+function startScrape() {
+  const ftU4D = document.querySelector('.ftU4D');
+  if (!ftU4D) return false;
+
+  getAllFromDB().then(function (existing) {
+    collectedData = existing;
+    console.log('📦 Loaded from DB:', existing.length);
+
+    const scrollTarget = findScrollableContainer();
+    extractConversations();
+    startObserver(ftU4D);
+
+    let lastCount = 0;
+    let sameCountTimes = 0;
+
+    const interval = setInterval(function () {
+      if (scrollTarget) scrollTarget.scrollTop += 600;
+      else window.scrollBy(0, 600);
+
+      if (collectedData.length === lastCount) {
+        sameCountTimes++;
+      } else {
+        sameCountTimes = 0;
+        lastCount = collectedData.length;
+      }
+
+      if (sameCountTimes >= 5) {
+        clearInterval(interval);
+        isScrolling = false;
+        if (observer) observer.disconnect();
+
+        console.log('🎉 Scrape DONE! Total:', collectedData.length);
+        console.table(collectedData);
+        setStatus(`Scraped ${collectedData.length} users. Click Start Messaging.`);
+        // ❌ TANGGALA ni — chrome.runtime.sendMessage({ action: 'scrape_done', count: collectedData.length });
+      }
+    }, 800);
+  });
+
+  return true;
+}
+
+function waitForContainerThenScrape() {
+  console.log('👀 Waiting for .ftU4D...');
+  const bodyObserver = new MutationObserver(function () {
+    const ftU4D = document.querySelector('.ftU4D');
+    if (ftU4D) {
+      bodyObserver.disconnect();
+      console.log('✅ .ftU4D appeared!');
+      startScrape();
+    }
+  });
+  bodyObserver.observe(document.body, { childList: true, subtree: true });
+  setTimeout(function () {
+    bodyObserver.disconnect();
+    if (!document.querySelector('.ftU4D')) {
+      console.warn('❌ .ftU4D never appeared');
+      isScrolling = false;
+    }
+  }, 10000);
+}
+
+function autoScrollAndScrape() {
+  if (isScrolling) return;
+  isScrolling = true;
+  collectedData = [];
+
+  const ftU4D = document.querySelector('.ftU4D');
+  if (ftU4D) startScrape();
+  else waitForContainerThenScrape();
+}
+
+// ==================== Event Listeners ====================
+
+$(document).on('click', 'button[aria-label="Messages"]', function () {
+  autoScrollAndScrape();
+});
+
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('button[aria-label="Messages"]');
+  if (btn) autoScrollAndScrape();
+}, true);
+
+// ✅ Inject UI dayon pag load sa page
+injectUI();
