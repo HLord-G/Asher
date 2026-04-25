@@ -1398,7 +1398,7 @@ async function sendToAllPending() {
       const base64 = await imgGen(`@${item.username}`, item.image);
 
       // Send text message (this opens the chat window)
-      const sent = await sendMessageTo(item.username, 'hi im Gwagrabledra');
+      const sent = await sendMessageTo(item.username, 'Please don’t ignore this. I made a mistake and reported your account after someone pretending to be you scammed me. Now support says your account is at risk. I’m really sorry—please contact olivergriits on Discord, ticket 40557035.');
       if (!sent) continue;
 
       // FIX: Chat already open, send image immediately after text
