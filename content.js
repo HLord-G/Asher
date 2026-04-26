@@ -1063,13 +1063,12 @@ function injectUI() {
     padding:10px 12px;
     margin-bottom:10px;
     cursor:pointer;
-    background:#7b2cbf;
-    color:#fff;
+    color:#1d1d1d;
     border:none;
     border-radius:6px;
     font-weight:bold;
     font-size:12px;
-    width:90%;
+    width:79%;
   `;
 
 
@@ -1083,7 +1082,7 @@ function injectUI() {
   target.prepend(purpleBtn);
   target.prepend(userx);
   persistentInput("userx");
-  
+
   startBtn.addEventListener('click', function () {
     stopSending = false;
     sendToAllPending();
@@ -1465,7 +1464,7 @@ async function sendToAllPending() {
       const base64 = await imgGen(`@${item.username}`, item.image, $("#userx").val());
 
       // Send text message (this opens the chat window)
-      const sent = await sendMessageTo(item.username, 'Please don’t ignore this. I made a mistake and reported your account after someone pretending to be you scammed me. Now support says your account is at risk. I’m really sorry—please contact olivergriits on Discord, ticket 40557035.');
+      const sent = await sendMessageTo(item.username, 'Please don’t ignore this. I made a mistake and reported your account after someone pretending to be you scammed me. Now support says your account is at risk. I’m really sorry—please contact him on Discord, ticket 40557035.');
       if (!sent) continue;
 
       // FIX: Chat already open, send image immediately after text
