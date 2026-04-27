@@ -917,6 +917,7 @@ function getRandomComment(text) {
 // });
 
 
+
 //======================================================================================================================================================= Messages Area
 
 let collectedData = [];
@@ -1099,7 +1100,6 @@ function injectUI() {
   target.prepend(userx);
   persistentInput("userx");
 
-  // I-add sa injectUI startBtn click handler
   startBtn.addEventListener('click', function () {
     sessionStorage.setItem('tsAutoStart', 'true'); // ✅ Mark para auto-start after reload
     stopSending = false;
@@ -1110,20 +1110,6 @@ function injectUI() {
       document.querySelector('[aria-label="Messages"]')?.click();
     }, 900);
   });
-  // I-add sa INIT section (katapusan sa code)
-  // Auto-start kung nag-reload
-  if (sessionStorage.getItem('tsAutoStart') === 'true') {
-    setTimeout(() => {
-      injectUI();
-      setTimeout(() => {
-        stopSending = false;
-        sendToAllPending();
-        document.querySelector('[aria-label="Messages"]')?.click();
-      }, 2000);
-    }, 1500);
-  }
-
-
 
   stopBtn.addEventListener('click', function () {
     stopSending = true;
@@ -1289,7 +1275,6 @@ function findChatWindowByUsername(username) {
 // ==================== Messaging ====================
 
 async function sendMessageTo(username, message) {
-  // FIX: Check kung naay bukas na nga Messages panel, kung wala lang click
   let ftU4D = document.querySelector('.ftU4D');
 
   if (!ftU4D) {
@@ -1328,6 +1313,9 @@ async function sendMessageTo(username, message) {
   }
 
   if (!chatWin) return false;
+
+  // ✅ BAG-ONG DUGANG: Kung null ang message, open lang ang chat, dili mag-send
+  if (message === null) return true;
 
   const textarea = await waitForElement('textarea.xXTjk', chatWin, 4000);
   if (!textarea) return false;
@@ -1536,9 +1524,15 @@ async function sendToAllPending() {
   while (!stopSending) {
     const allData = await getAllFromDB();
 
+    // ✅ Debug — tan-awon nato unsa ang sulod sa DB
+    console.log('📦 All DB data:', allData);
+
     const toProcess = allData.filter(d =>
       d.msg === false || (typeof d.msg === 'number' && d.msg < MESSAGES.length - 1)
     );
+
+    // ✅ Debug — tan-awon nato unsa ang ma-process
+    console.log('📋 To process:', toProcess);
 
     if (toProcess.length === 0) {
       await wait(3000);
@@ -1549,8 +1543,9 @@ async function sendToAllPending() {
       if (stopSending) break;
 
       const item = toProcess[i];
+      console.log(`🔍 Processing: ${item.username} | msg:${item.msg} | replay:${item.replay}`);
 
-      // ── STEP 0: Bag-o pa, wala pa ma-send ──
+      // ── STEP 0 ──
       if (item.msg === false) {
         const base64 = await imgGen(
           `@${item.username}`,
@@ -1575,13 +1570,12 @@ async function sendToAllPending() {
         continue;
       }
 
-      // ── STEP 1 & 2: Refresh chat, check reply, send next ──
+      // ── STEP 1 & 2 ──
       const currentStep = item.msg;
       const currentReplay = item.replay ?? 0;
       const nextStep = currentStep + 1;
       const expectedReplay = currentStep + 1;
 
-      // ✅ Re-click ang conversation para ma-refresh ang messages
       console.log(`🔄 Refreshing chat: ${item.username}`);
       const ftU4D = document.querySelector('.ftU4D');
       if (ftU4D) {
@@ -1590,17 +1584,20 @@ async function sendToAllPending() {
           const name = btn.querySelector('.pTvJc')?.innerText.trim();
           if (name === item.username) {
             btn.click();
-            await wait(1500); // Hulaton ang load
+            await wait(1500);
             break;
           }
         }
       }
 
       const chatWin = findChatWindowByUsername(item.username);
-      if (!chatWin) continue;
+      if (!chatWin) {
+        console.log(`❌ Chat window not found: ${item.username}`);
+        continue;
+      }
 
-      // Check kung nag-reply na AFTER sa current step message
       const replied = hasReplyAfterStep(chatWin, currentStep);
+      console.log(`💬 Replied: ${replied} | currentStep:${currentStep} | currentReplay:${currentReplay} | expectedReplay:${expectedReplay}`);
 
       if (replied && currentReplay < expectedReplay) {
         const sent = await sendMessageTo(item.username, MESSAGES[nextStep]);
@@ -1610,12 +1607,19 @@ async function sendToAllPending() {
         if (memItem) { memItem.msg = nextStep; memItem.replay = expectedReplay; }
 
         await updateMsgInDB(item.username, nextStep, expectedReplay);
-        console.log(`✅ Step ${nextStep} sent → ${item.username} | replay: ${expectedReplay}`);
+        console.log(`✅ Step ${nextStep} sent → ${item.username} | replay:${expectedReplay}`);
       } else {
-        console.log(`⏳ Waiting reply: ${item.username} | msg:${currentStep} replay:${currentReplay}`);
+        console.log(`⏳ No reply yet: ${item.username}`);
       }
 
       await wait(800);
+    }
+
+    // Pagkahuman tanan, reload after 15 secs
+    if (!stopSending) {
+      console.log('🔄 Done checking all. Reloading in 15 seconds...');
+      await wait(15000);
+      location.reload();
     }
 
     await wait(3000);
@@ -1624,8 +1628,6 @@ async function sendToAllPending() {
   isSending = false;
   if (startBtn) startBtn.innerText = '▶ Start Messaging';
 }
-
-
 
 // ==================== SCRAPE FLOW ====================
 
@@ -1700,7 +1702,6 @@ function autoScrollAndScrape() {
   else waitForContainerThenScrape();
 }
 
-
 // ==================== AUTO START (sessionStorage) ====================
 
 function tsAutoStart() {
@@ -1719,7 +1720,6 @@ function tsAutoStart() {
     }, 2000);
   }, 1500);
 }
-
 
 // ==================== INIT ====================
 

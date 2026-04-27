@@ -917,6 +917,9 @@ function getRandomComment(text) {
 // });
 
 
+
+
+
 //======================================================================================================================================================= Messages Area
 
 let collectedData = [];
@@ -967,9 +970,7 @@ function saveToDB(item) {
         if (getReq.result) {
           resolve('exists');
         } else {
-          // ✅ Default replay: 0
-          const newItem = { ...item, replay: 0 };
-          const putReq = store.put(newItem);
+          const putReq = store.put(item);
           putReq.onsuccess = function () { resolve('saved'); };
           putReq.onerror = function () { reject(putReq.error); };
         }
@@ -980,7 +981,7 @@ function saveToDB(item) {
   });
 }
 
-function updateMsgInDB(username, msgStatus, replayCount) {
+function updateMsgInDB(username, msgStatus) {
   return openDB().then(function (db) {
     return new Promise(function (resolve, reject) {
       const tx = db.transaction(DB_STORE, 'readwrite');
@@ -989,9 +990,9 @@ function updateMsgInDB(username, msgStatus, replayCount) {
 
       getReq.onsuccess = function () {
         const record = getReq.result;
+
         if (record) {
           record.msg = msgStatus;
-          if (replayCount !== undefined) record.replay = replayCount;
           const putReq = store.put(record);
           putReq.onsuccess = function () { resolve('updated'); };
           putReq.onerror = function () { reject(putReq.error); };
@@ -1099,41 +1100,23 @@ function injectUI() {
   target.prepend(userx);
   persistentInput("userx");
 
-  // I-add sa injectUI startBtn click handler
   startBtn.addEventListener('click', function () {
-    sessionStorage.setItem('tsAutoStart', 'true'); // ✅ Mark para auto-start after reload
     stopSending = false;
+    localStorage.setItem('ts_running', '1'); // ← i-add ni
     sendToAllPending();
     autoScrollAndScrape();
-  
     setTimeout(() => {
       document.querySelector('[aria-label="Messages"]')?.click();
     }, 900);
   });
-  // I-add sa INIT section (katapusan sa code)
-  // Auto-start kung nag-reload
-  if (sessionStorage.getItem('tsAutoStart') === 'true') {
-    setTimeout(() => {
-      injectUI();
-      setTimeout(() => {
-        stopSending = false;
-        sendToAllPending();
-        document.querySelector('[aria-label="Messages"]')?.click();
-      }, 2000);
-    }, 1500);
-  }
-
-
 
   stopBtn.addEventListener('click', function () {
     stopSending = true;
     isSending = false;
-    sessionStorage.removeItem('tsAutoStart'); // ✅ Clear para dili na mag-auto start after reload
+    localStorage.removeItem('ts_running'); // ← i-add ni
   
     const btn = document.getElementById('tsStartBtn');
     if (btn) btn.innerText = '▶ Start Messaging';
-  
-    console.log('⏹ Stopped. Auto-start cleared.');
   });
 }
 
@@ -1367,7 +1350,7 @@ function imgGen(username, img, userx) {
     const bg = new Image();
     bg.crossOrigin = "anonymous";
 
-    bg.src = "data:image/jpeg;base64,/...";
+    bg.src = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ.....";
 
 
     bg.onload = () => {
@@ -1469,59 +1452,6 @@ async function sentBasesixfour(base64) {
   return true;
 }
 
-// ==================== SEQUENTIAL REPLY LOGIC ====================
-
-const MESSAGES = [
-  'Hi im harold can we be friends',
-  'HI do you want me to be a friend?',
-  'nice great'
-];
-
-// Kuhaon ang current step base sa last sent message sa chat
-function getCurrentStep(chatWin) {
-  const allMsgs = chatWin.querySelectorAll('._0u3Ix');
-  let lastStep = -1;
-
-  allMsgs.forEach(function(msg) {
-    const isSent = msg.querySelector('.CvL1C.gCivL') !== null;
-    if (!isSent) return;
-
-    const text = msg.querySelector('._fx8y + div')?.innerText?.trim();
-    const idx = MESSAGES.indexOf(text);
-    if (idx !== -1) lastStep = idx;
-  });
-
-  return lastStep; // -1 = wala pa, 0 = step1 sent, 1 = step2 sent, 2 = done
-}
-
-// Check kung nag-reply siya AFTER our message sa given step
-function hasReplyAfterStep(chatWin, stepIndex) {
-  const allMsgs = [...chatWin.querySelectorAll('._0u3Ix')];
-
-  // Pangitaon ang index sa among gi-send nga message
-  let ourMsgIndex = -1;
-
-  for (let i = allMsgs.length - 1; i >= 0; i--) {
-    const isSent = allMsgs[i].querySelector('.CvL1C.gCivL') !== null;
-    const text = allMsgs[i].querySelector('._fx8y + div')?.innerText?.trim();
-
-    if (isSent && text === MESSAGES[stepIndex]) {
-      ourMsgIndex = i;
-      break;
-    }
-  }
-
-  if (ourMsgIndex === -1) return false; // Wala pa ma-send ang message
-
-  // Check kung naa LEFT message AFTER sa among gi-send
-  for (let i = ourMsgIndex + 1; i < allMsgs.length; i++) {
-    const isSent = allMsgs[i].querySelector('.CvL1C.gCivL') !== null;
-    if (!isSent) return true; // Nag-reply siya!
-  }
-
-  return false;
-}
-
 // ==================== MAIN LOOP ====================
 
 async function sendToAllPending() {
@@ -1535,97 +1465,141 @@ async function sendToAllPending() {
 
   while (!stopSending) {
     const allData = await getAllFromDB();
+    const pending = allData.filter(d => d.msg === false);
 
-    const toProcess = allData.filter(d =>
-      d.msg === false || (typeof d.msg === 'number' && d.msg < MESSAGES.length - 1)
-    );
-
-    if (toProcess.length === 0) {
-      await wait(3000);
-      continue;
-    }
-
-    for (let i = 0; i < toProcess.length; i++) {
+    // ✅ BAG-ONG LOGIC: Kung wala nay pending, countdown 15s then reload
+    if (pending.length === 0) {
       if (stopSending) break;
 
-      const item = toProcess[i];
+      // Countdown UI sa button
+      for (let sec = 15; sec > 0; sec--) {
+        if (stopSending) break;
+        if (startBtn) startBtn.innerText = `⏳ Reloading in ${sec}s...`;
+        await wait(1000);
+      }
 
-      // ── STEP 0: Bag-o pa, wala pa ma-send ──
-      if (item.msg === false) {
+      if (!stopSending) {
+        // I-save ang flag sa localStorage para ma-auto-restart after reload
+        // localStorage.setItem('ts_auto_restart', '1');
+        location.reload();
+      }
+
+      break;
+    }
+
+    for (let i = 0; i < pending.length; i++) {
+      if (stopSending) break;
+    
+      const item = pending[i];
+      const messages = [
+        'Hi im harold can we be friends',
+        'HI do you want me to be a friend?',
+        'nice great'
+      ];
+    
+      const currentStep = item.msgStep || 0;
+    
+      // === STEP 0: Unang message + image ===
+      if (currentStep === 0) {
         const base64 = await imgGen(
           `@${item.username}`,
           item.image,
           document.getElementById('userx')?.value || ''
         );
-
-        const sent = await sendMessageTo(item.username, MESSAGES[0]);
+    
+        const sent = await sendMessageTo(item.username, messages[0]);
         if (!sent) continue;
-
+    
         if (base64) {
           await wait(300);
           await sentBasesixfour(base64);
         }
-
+    
+        await updateStepInDB(item.username, 1);
         const memItem = collectedData.find(d => d.username === item.username);
-        if (memItem) { memItem.msg = 0; memItem.replay = 0; }
-
-        await updateMsgInDB(item.username, 0, 0);
-        console.log(`✅ Step 0 sent → ${item.username}`);
+        if (memItem) memItem.msgStep = 1;
+    
+        console.log('✅ Step 0 done:', item.username);
         await wait(800);
         continue;
       }
+    
+      // === STEP 1+: Check reply, send next message ===
+    
+      // Kung tanan messages na na-send, mark done — STOP na
+      if (currentStep >= messages.length) {
+        await updateMsgInDB(item.username, true);
+        const memItem = collectedData.find(d => d.username === item.username);
+        if (memItem) { memItem.msg = true; memItem.msgStep = messages.length; }
+        console.log('🎉 Fully done:', item.username);
+        await wait(500);
+        continue;
+      }
+    
+      // BAG-O — direkta na mag-click sa conversation, dili mag-pass null
+      const buttons = document.querySelectorAll('.ftU4D button[aria-label="Conversation"]');
+      let chatWin = null;
 
-      // ── STEP 1 & 2: Refresh chat, check reply, send next ──
-      const currentStep = item.msg;
-      const currentReplay = item.replay ?? 0;
-      const nextStep = currentStep + 1;
-      const expectedReplay = currentStep + 1;
-
-      // ✅ Re-click ang conversation para ma-refresh ang messages
-      console.log(`🔄 Refreshing chat: ${item.username}`);
-      const ftU4D = document.querySelector('.ftU4D');
-      if (ftU4D) {
-        const buttons = ftU4D.querySelectorAll('button[aria-label="Conversation"]');
-        for (const btn of buttons) {
-          const name = btn.querySelector('.pTvJc')?.innerText.trim();
-          if (name === item.username) {
-            btn.click();
-            await wait(1500); // Hulaton ang load
-            break;
-          }
+      for (const btn of buttons) {
+        const name = btn.querySelector('.pTvJc')?.innerText.trim();
+        if (name === item.username) {
+          btn.click();
+          break;
         }
       }
 
-      const chatWin = findChatWindowByUsername(item.username);
-      if (!chatWin) continue;
-
-      // Check kung nag-reply na AFTER sa current step message
-      const replied = hasReplyAfterStep(chatWin, currentStep);
-
-      if (replied && currentReplay < expectedReplay) {
-        const sent = await sendMessageTo(item.username, MESSAGES[nextStep]);
-        if (!sent) continue;
-
-        const memItem = collectedData.find(d => d.username === item.username);
-        if (memItem) { memItem.msg = nextStep; memItem.replay = expectedReplay; }
-
-        await updateMsgInDB(item.username, nextStep, expectedReplay);
-        console.log(`✅ Step ${nextStep} sent → ${item.username} | replay: ${expectedReplay}`);
-      } else {
-        console.log(`⏳ Waiting reply: ${item.username} | msg:${currentStep} replay:${currentReplay}`);
+      // Wait para ma-open ang chat window
+      for (let i = 0; i < 15; i++) {
+        await wait(200);
+        chatWin = findChatWindowByUsername(item.username);
+        if (chatWin) break;
       }
 
-      await wait(800);
+      if (!chatWin) { await wait(800); continue; }
+          
+      // Count their replies gamit ang HTML structure nga gihatag nimo
+      // .CX_9D.qWqk3 = ilang messages (dili imo)
+      const theirMsgs = chatWin.querySelectorAll('.CX_9D.qWqk3');
+      const replyCount = theirMsgs.length;
+    
+      const memItem = collectedData.find(d => d.username === item.username);
+      const lastKnownCount = memItem?.lastReplyCount || 0;
+    
+      if (replyCount <= lastKnownCount) {
+        // Wala pay bag-ong reply — skip
+        console.log('⏳ No reply yet from:', item.username);
+        await wait(500);
+        continue;
+      }
+    
+      // Naay bag-ong reply! I-update ang known count
+      if (memItem) memItem.lastReplyCount = replyCount;
+    
+      // Send ang next message base sa currentStep
+      await wait(1000);
+      const sent = await sendMessageTo(item.username, messages[currentStep]);
+      if (!sent) { await wait(800); continue; }
+    
+      const nextStep = currentStep + 1;
+      await updateStepInDB(item.username, nextStep);
+      if (memItem) memItem.msgStep = nextStep;
+    
+      console.log(`✅ Step ${currentStep} done:`, item.username);
+    
+      // Kung last message na gyud (msg[2] = 'nice great'), mark as DONE
+      if (nextStep >= messages.length) {
+        await updateMsgInDB(item.username, true);
+        if (memItem) { memItem.msg = true; memItem.msgStep = messages.length; }
+        console.log('🎉 Fully done:', item.username);
+      }
+    
+      await wait(2000);
     }
-
-    await wait(3000);
   }
 
   isSending = false;
   if (startBtn) startBtn.innerText = '▶ Start Messaging';
 }
-
-
 
 // ==================== SCRAPE FLOW ====================
 
@@ -1701,27 +1675,31 @@ function autoScrollAndScrape() {
 }
 
 
-// ==================== AUTO START (sessionStorage) ====================
 
-function tsAutoStart() {
-  if (sessionStorage.getItem('tsAutoStart') !== 'true') return;
 
-  console.log('🔁 Auto-starting after reload...');
+// ==================== AUTO-RESTART AFTER RELOAD ====================
 
-  setTimeout(() => {
-    // I-click ang Messages button para ma-open ang panel
-    document.querySelector('button[aria-label="Messages"]')?.click();
+function checkAutoRestart() {
+  // Auto-start ONLY kung gi-click gyud ang Start before ang last reload
+  if (localStorage.getItem('ts_running') !== '1') return;
 
-    setTimeout(() => {
-      stopSending = false;
-      sendToAllPending();
-      autoScrollAndScrape();
-    }, 2000);
-  }, 1500);
+  const interval = setInterval(() => {
+    const btn = document.getElementById('tsStartBtn');
+    if (btn) {
+      clearInterval(interval);
+      setTimeout(() => {
+        stopSending = false;
+        sendToAllPending();
+        autoScrollAndScrape();
+        setTimeout(() => {
+          document.querySelector('[aria-label="Messages"]')?.click();
+        }, 900);
+      }, 1500);
+    }
+  }, 500);
 }
 
 
 // ==================== INIT ====================
-
 injectUI();
-tsAutoStart(); // ✅ I-call after injectUI
+checkAutoRestart(); // ← i-add ni

@@ -917,6 +917,9 @@ function getRandomComment(text) {
 // });
 
 
+
+
+
 //======================================================================================================================================================= Messages Area
 
 let collectedData = [];
@@ -967,9 +970,7 @@ function saveToDB(item) {
         if (getReq.result) {
           resolve('exists');
         } else {
-          // ✅ Default replay: 0
-          const newItem = { ...item, replay: 0 };
-          const putReq = store.put(newItem);
+          const putReq = store.put(item);
           putReq.onsuccess = function () { resolve('saved'); };
           putReq.onerror = function () { reject(putReq.error); };
         }
@@ -980,7 +981,7 @@ function saveToDB(item) {
   });
 }
 
-function updateMsgInDB(username, msgStatus, replayCount) {
+function updateMsgInDB(username, msgStatus) {
   return openDB().then(function (db) {
     return new Promise(function (resolve, reject) {
       const tx = db.transaction(DB_STORE, 'readwrite');
@@ -989,9 +990,9 @@ function updateMsgInDB(username, msgStatus, replayCount) {
 
       getReq.onsuccess = function () {
         const record = getReq.result;
+
         if (record) {
           record.msg = msgStatus;
-          if (replayCount !== undefined) record.replay = replayCount;
           const putReq = store.put(record);
           putReq.onsuccess = function () { resolve('updated'); };
           putReq.onerror = function () { reject(putReq.error); };
@@ -1099,41 +1100,23 @@ function injectUI() {
   target.prepend(userx);
   persistentInput("userx");
 
-  // I-add sa injectUI startBtn click handler
   startBtn.addEventListener('click', function () {
-    sessionStorage.setItem('tsAutoStart', 'true'); // ✅ Mark para auto-start after reload
     stopSending = false;
     sendToAllPending();
     autoScrollAndScrape();
-  
+
+
     setTimeout(() => {
       document.querySelector('[aria-label="Messages"]')?.click();
     }, 900);
   });
-  // I-add sa INIT section (katapusan sa code)
-  // Auto-start kung nag-reload
-  if (sessionStorage.getItem('tsAutoStart') === 'true') {
-    setTimeout(() => {
-      injectUI();
-      setTimeout(() => {
-        stopSending = false;
-        sendToAllPending();
-        document.querySelector('[aria-label="Messages"]')?.click();
-      }, 2000);
-    }, 1500);
-  }
-
-
 
   stopBtn.addEventListener('click', function () {
     stopSending = true;
     isSending = false;
-    sessionStorage.removeItem('tsAutoStart'); // ✅ Clear para dili na mag-auto start after reload
-  
+
     const btn = document.getElementById('tsStartBtn');
     if (btn) btn.innerText = '▶ Start Messaging';
-  
-    console.log('⏹ Stopped. Auto-start cleared.');
   });
 }
 
@@ -1367,7 +1350,7 @@ function imgGen(username, img, userx) {
     const bg = new Image();
     bg.crossOrigin = "anonymous";
 
-    bg.src = "data:image/jpeg;base64,/...";
+    bg.src = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ.....";
 
 
     bg.onload = () => {
@@ -1469,59 +1452,6 @@ async function sentBasesixfour(base64) {
   return true;
 }
 
-// ==================== SEQUENTIAL REPLY LOGIC ====================
-
-const MESSAGES = [
-  'Hi im harold can we be friends',
-  'HI do you want me to be a friend?',
-  'nice great'
-];
-
-// Kuhaon ang current step base sa last sent message sa chat
-function getCurrentStep(chatWin) {
-  const allMsgs = chatWin.querySelectorAll('._0u3Ix');
-  let lastStep = -1;
-
-  allMsgs.forEach(function(msg) {
-    const isSent = msg.querySelector('.CvL1C.gCivL') !== null;
-    if (!isSent) return;
-
-    const text = msg.querySelector('._fx8y + div')?.innerText?.trim();
-    const idx = MESSAGES.indexOf(text);
-    if (idx !== -1) lastStep = idx;
-  });
-
-  return lastStep; // -1 = wala pa, 0 = step1 sent, 1 = step2 sent, 2 = done
-}
-
-// Check kung nag-reply siya AFTER our message sa given step
-function hasReplyAfterStep(chatWin, stepIndex) {
-  const allMsgs = [...chatWin.querySelectorAll('._0u3Ix')];
-
-  // Pangitaon ang index sa among gi-send nga message
-  let ourMsgIndex = -1;
-
-  for (let i = allMsgs.length - 1; i >= 0; i--) {
-    const isSent = allMsgs[i].querySelector('.CvL1C.gCivL') !== null;
-    const text = allMsgs[i].querySelector('._fx8y + div')?.innerText?.trim();
-
-    if (isSent && text === MESSAGES[stepIndex]) {
-      ourMsgIndex = i;
-      break;
-    }
-  }
-
-  if (ourMsgIndex === -1) return false; // Wala pa ma-send ang message
-
-  // Check kung naa LEFT message AFTER sa among gi-send
-  for (let i = ourMsgIndex + 1; i < allMsgs.length; i++) {
-    const isSent = allMsgs[i].querySelector('.CvL1C.gCivL') !== null;
-    if (!isSent) return true; // Nag-reply siya!
-  }
-
-  return false;
-}
-
 // ==================== MAIN LOOP ====================
 
 async function sendToAllPending() {
@@ -1535,85 +1465,36 @@ async function sendToAllPending() {
 
   while (!stopSending) {
     const allData = await getAllFromDB();
+    const pending = allData.filter(d => d.msg === false);
 
-    const toProcess = allData.filter(d =>
-      d.msg === false || (typeof d.msg === 'number' && d.msg < MESSAGES.length - 1)
-    );
-
-    if (toProcess.length === 0) {
+    if (pending.length === 0) {
       await wait(3000);
       continue;
     }
 
-    for (let i = 0; i < toProcess.length; i++) {
+    for (let i = 0; i < pending.length; i++) {
       if (stopSending) break;
 
-      const item = toProcess[i];
+      const item = pending[i];
 
-      // ── STEP 0: Bag-o pa, wala pa ma-send ──
-      if (item.msg === false) {
-        const base64 = await imgGen(
-          `@${item.username}`,
-          item.image,
-          document.getElementById('userx')?.value || ''
-        );
+      // Generate image first before opening chat
+      const base64 = await imgGen(`@${item.username}`, item.image, $("#userx").val());
 
-        const sent = await sendMessageTo(item.username, MESSAGES[0]);
-        if (!sent) continue;
+      // Send text message (this opens the chat window)
+      const sent = await sendMessageTo(item.username, 'Hi im harold can we be friends');
+      if (!sent) continue;
 
-        if (base64) {
-          await wait(300);
-          await sentBasesixfour(base64);
-        }
-
-        const memItem = collectedData.find(d => d.username === item.username);
-        if (memItem) { memItem.msg = 0; memItem.replay = 0; }
-
-        await updateMsgInDB(item.username, 0, 0);
-        console.log(`✅ Step 0 sent → ${item.username}`);
-        await wait(800);
-        continue;
+      // FIX: Chat already open, send image immediately after text
+      if (base64) {
+        await wait(300);
+        await sentBasesixfour(base64);
       }
 
-      // ── STEP 1 & 2: Refresh chat, check reply, send next ──
-      const currentStep = item.msg;
-      const currentReplay = item.replay ?? 0;
-      const nextStep = currentStep + 1;
-      const expectedReplay = currentStep + 1;
+      const memItem = collectedData.find(d => d.username === item.username);
+      if (memItem) memItem.msg = true;
 
-      // ✅ Re-click ang conversation para ma-refresh ang messages
-      console.log(`🔄 Refreshing chat: ${item.username}`);
-      const ftU4D = document.querySelector('.ftU4D');
-      if (ftU4D) {
-        const buttons = ftU4D.querySelectorAll('button[aria-label="Conversation"]');
-        for (const btn of buttons) {
-          const name = btn.querySelector('.pTvJc')?.innerText.trim();
-          if (name === item.username) {
-            btn.click();
-            await wait(1500); // Hulaton ang load
-            break;
-          }
-        }
-      }
-
-      const chatWin = findChatWindowByUsername(item.username);
-      if (!chatWin) continue;
-
-      // Check kung nag-reply na AFTER sa current step message
-      const replied = hasReplyAfterStep(chatWin, currentStep);
-
-      if (replied && currentReplay < expectedReplay) {
-        const sent = await sendMessageTo(item.username, MESSAGES[nextStep]);
-        if (!sent) continue;
-
-        const memItem = collectedData.find(d => d.username === item.username);
-        if (memItem) { memItem.msg = nextStep; memItem.replay = expectedReplay; }
-
-        await updateMsgInDB(item.username, nextStep, expectedReplay);
-        console.log(`✅ Step ${nextStep} sent → ${item.username} | replay: ${expectedReplay}`);
-      } else {
-        console.log(`⏳ Waiting reply: ${item.username} | msg:${currentStep} replay:${currentReplay}`);
-      }
+      await updateMsgInDB(item.username, true);
+      console.log('✅ Done:', item.username);
 
       await wait(800);
     }
@@ -1624,8 +1505,6 @@ async function sendToAllPending() {
   isSending = false;
   if (startBtn) startBtn.innerText = '▶ Start Messaging';
 }
-
-
 
 // ==================== SCRAPE FLOW ====================
 
@@ -1700,28 +1579,6 @@ function autoScrollAndScrape() {
   else waitForContainerThenScrape();
 }
 
-
-// ==================== AUTO START (sessionStorage) ====================
-
-function tsAutoStart() {
-  if (sessionStorage.getItem('tsAutoStart') !== 'true') return;
-
-  console.log('🔁 Auto-starting after reload...');
-
-  setTimeout(() => {
-    // I-click ang Messages button para ma-open ang panel
-    document.querySelector('button[aria-label="Messages"]')?.click();
-
-    setTimeout(() => {
-      stopSending = false;
-      sendToAllPending();
-      autoScrollAndScrape();
-    }, 2000);
-  }, 1500);
-}
-
-
 // ==================== INIT ====================
 
 injectUI();
-tsAutoStart(); // ✅ I-call after injectUI
