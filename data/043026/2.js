@@ -940,141 +940,86 @@ let isScrolling = false;
 let isSending = false;
 let stopSending = false;
 let observer = null;
-let clickMessageIndexOnce = false
-let activeUsername = ""
-let startonce = false
-let msgsentonce = false
+
 const DB_NAME = 'TumblrScraper';
 const DB_STORE = 'conversations';
 const DB_VERSION = 1;
 
+// ==================== IndexedDB ====================
 
-
-
-/* ============================================ [S] ONLOAD RUNNER [S] ============================================ */
-
-// =========================
-// SAVE FUNCTIONS
-// =========================
-
-const localLogicFunctions = {};
-
-
-// =========================
-// REGISTER FUNCTION
-// =========================
-
-function setLocalLogic(name, value) {
-
-  // SAVE FUNCTION
-  if (typeof value === "function") {
-
-    localLogicFunctions[name] = value;
-
-    return;
-
-  }
-
-  // SAVE TRUE/FALSE
-  localStorage.setItem(
-    "logic_" + name,
-    JSON.stringify(value)
-  );
-
+function openDB() {
+  return new Promise(function (resolve, reject) {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = function (e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(DB_STORE)) {
+        db.createObjectStore(DB_STORE, { keyPath: 'username' });
+      }
+    };
+    req.onsuccess = function (e) { resolve(e.target.result); };
+    req.onerror = function (e) { reject(e.target.error); };
+  });
 }
 
-
-// =========================
-// RUN LOGIC
-// =========================
-
-async function runLocalLogic(name) {
-
-  const status = JSON.parse(
-    localStorage.getItem("logic_" + name)
-  );
-
-  // NOT TRUE
-  if (status !== true) {
-
-    console.log(name, "not active");
-    return false;
-
-  }
-
-  // FUNCTION NOT FOUND
-  if (!localLogicFunctions[name]) {
-
-    console.log(name, "function not found");
-    return false;
-
-  }
-
-  console.log(name, "running...");
-
-  await localLogicFunctions[name]();
-
-  return true;
-
+function getAllFromDB() {
+  return openDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).getAll();
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  });
 }
 
+function saveToDB(item) {
+  return openDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      const store = tx.objectStore(DB_STORE);
+      const getReq = store.get(item.username);
 
-// =========================
-// STOP LOGIC
-// =========================
+      getReq.onsuccess = function () {
+        if (getReq.result) {
+          resolve('exists');
+        } else {
+          // ✅ Default replay: 0
+          const newItem = { ...item, replay: 0 };
+          const putReq = store.put(newItem);
+          putReq.onsuccess = function () { resolve('saved'); };
+          putReq.onerror = function () { reject(putReq.error); };
+        }
+      };
 
-function stopLocalLogic(name) {
-
-  localStorage.setItem(
-    "logic_" + name,
-    JSON.stringify(false)
-  );
-
-  console.log(name, "stopped");
-
+      getReq.onerror = function () { reject(getReq.error); };
+    });
+  });
 }
 
+function updateMsgInDB(username, msgStatus, replayCount) {
+  return openDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      const store = tx.objectStore(DB_STORE);
+      const getReq = store.get(username);
 
-// =========================
-// AUTO RUN ON LOAD
-// =========================
+      getReq.onsuccess = function () {
+        const record = getReq.result;
+        if (record) {
+          record.msg = msgStatus;
+          if (replayCount !== undefined) record.replay = replayCount;
+          const putReq = store.put(record);
+          putReq.onsuccess = function () { resolve('updated'); };
+          putReq.onerror = function () { reject(putReq.error); };
+        } else {
+          resolve('not found');
+        }
+      };
 
-window.addEventListener("load", async () => {
-
-  for (const name in localLogicFunctions) {
-
-    const status = JSON.parse(
-      localStorage.getItem("logic_" + name)
-    );
-
-    if (status === true) {
-
-      await runLocalLogic(name);
-
-    }
-
-  }
-
-});
-// ====================================================================== []
-// RUN LOGGIC
-// ====================================================================== []
-setLocalLogic("autoRunnerMsg", async function () {
-
-
-  $("[mainBox]").hide()
-
-  setTimeout(() => {
-    $("#tsStartBtn").click()
-  }, 4000);
-
-
-  
-});
-/* ============================================ [E] ONLOAD RUNNER [E] ============================================ */
-
-
-
+      getReq.onerror = function () { reject(getReq.error); };
+    });
+  });
+}
 
 // ==================== UI ====================
 
@@ -1094,65 +1039,37 @@ function injectUI() {
     flex-flow:row;
     gap:2px;
     align-items:center;
-    justify-content:center;
     margin-bottom:10px;
-    width:90%;
+    width:100%;
   `;
 
   const startBtn = document.createElement('button');
   startBtn.id = 'tsStartBtn';
-  startBtn.innerText = '▶';
+  startBtn.innerText = '▶ Start Messaging';
   startBtn.style.cssText = `
     padding:10px 12px;
     cursor:pointer;
-    background:#00b8ff;
-    color:black;
-    border:none;
-    border-radius:6px;
-    font-weight:bold;
-    font-size:12px;
-    flex:1;
-  `;
-
-  const stopBtn = document.createElement('button');
-  stopBtn.id = 'tsStopBtn';
-  stopBtn.innerText = '⏹';
-  stopBtn.style.cssText = `
-    padding:10px 12px;
-    cursor:pointer;
-    background:#191919;
+    background:#00b894;
     color:#fff;
     border:none;
     border-radius:6px;
     font-weight:bold;
     font-size:12px;
-    flex:1;
   `;
 
-
-    
-  const timerr = document.createElement('input');
-  timerr.id = 'timerr';
-  timerr.placeholder = 'timer';
-  timerr.type = 'number';
-
-
-  // userx.innerText = 'Bot Setup';
-  timerr.style.cssText = `
+  const stopBtn = document.createElement('button');
+  stopBtn.id = 'tsStopBtn';
+  stopBtn.innerText = '⏹ Stop';
+  stopBtn.style.cssText = `
     padding:10px 12px;
     cursor:pointer;
-    color:#1d1d1d;
+    background:#d63031;
+    color:#fff;
     border:none;
     border-radius:6px;
     font-weight:bold;
     font-size:12px;
-    outline:0;
-    width:10%;
-       flex:2;
   `;
-
-
-
 
   const purpleBtn = document.createElement('button');
   purpleBtn.id = 'menuBtn';
@@ -1161,7 +1078,7 @@ function injectUI() {
     padding:10px 12px;
     margin-bottom:10px;
     cursor:pointer;
-    background:#191919;
+    background:#7b2cbf;
     color:#fff;
     border:none;
     border-radius:6px;
@@ -1176,7 +1093,7 @@ function injectUI() {
   // userx.innerText = 'Bot Setup';
   userx.style.cssText = `
     padding:10px 12px;
-    margin-bottom:40px;
+    margin-bottom:10px;
     cursor:pointer;
     color:#1d1d1d;
     border:none;
@@ -1184,84 +1101,19 @@ function injectUI() {
     font-weight:bold;
     font-size:12px;
     width:79%;
-    outline:0;
   `;
 
-
-
-  const firstMsg = document.createElement('input');
-  firstMsg.id = 'firstmsg';
-  firstMsg.placeholder = '1st Message';
-
-  // userx.innerText = 'Bot Setup';
-  firstMsg.style.cssText = `
-    padding:10px 12px;
-    margin-bottom:6px;
-    color:#1d1d1d;
-    border:none;
-    border-radius:6px;
-    font-weight:bold;
-    font-size:12px;
-    width:79%;
-    outline:0;
-  `;
-
-
-
-  const secondMsg = document.createElement('input');
-  secondMsg.id = 'secondmsg';
-  secondMsg.placeholder = '2nd Message';
-
-  // userx.innerText = 'Bot Setup';
-  secondMsg.style.cssText = `
-    padding:10px 12px;
-    margin-bottom:6px;
-    color:#1d1d1d;
-    border:none;
-    border-radius:6px;
-    font-weight:bold;
-    font-size:12px;
-    width:79%;
-    outline:0;
-  `;
-
-
-
-  const thirdMsg = document.createElement('input');
-  thirdMsg.id = 'thirdmsg';
-  thirdMsg.placeholder = '3rd Message';
-
-  // userx.innerText = 'Bot Setup';
-  thirdMsg.style.cssText = `
-    padding:10px 12px;
-    margin-bottom:6px;
-    color:#1d1d1d;
-    border:none;
-    border-radius:6px;
-    font-weight:bold;
-    font-size:12px;
-    width:79%;
-    outline:0;
-  `;
 
 
   
-
-
-  target.prepend(purpleBtn);
-  target.prepend(userx);
 
   wrapper.appendChild(startBtn);
   wrapper.appendChild(stopBtn);
-  wrapper.appendChild(timerr);
 
-  
   target.prepend(wrapper);
-  target.prepend(thirdMsg);
-  target.prepend(secondMsg);
-  target.prepend(firstMsg);
-
-
+  target.prepend(purpleBtn);
+  target.prepend(userx);
+  persistentInput("userx");
 
   // I-add sa injectUI startBtn click handler
   startBtn.addEventListener('click', function () {
@@ -1295,7 +1147,7 @@ function injectUI() {
     sessionStorage.removeItem('tsAutoStart'); // ✅ Clear para dili na mag-auto start after reload
   
     const btn = document.getElementById('tsStartBtn');
-    if (btn) btn.innerText = '▶';
+    if (btn) btn.innerText = '▶ Start Messaging';
   
     console.log('⏹ Stopped. Auto-start cleared.');
   });
@@ -1306,757 +1158,234 @@ function setStatus(msg) {
 }
 
 
- 
 
+function persistentInput(id){
+  const el = document.getElementById(id);
+  if(!el) return;
 
+  const key = id; // mao na mismo ang key
 
-
-
-
-function keepConversationOpen() {
-
-  let observer = null;
-  let keepAliveInterval = null;
-  let running = false;
-
-  function isConversationOpen() {
-
-    // if actual chat thread open
-    return document.querySelector(
-      '.TRX6J[aria-label="Back"]'
-    );
-
+  // load
+  const saved = localStorage.getItem(key);
+  if(saved !== null){
+      el.value = saved;
   }
 
-  function reopenPanel() {
-
-    // DON'T reopen if inside conversation
-    if (isConversationOpen()) {
-      return;
-    }
-
-    const panel = document.querySelector('.ybmTG.ufrME');
-
-    if (panel && panel.offsetParent !== null) {
-      return;
-    }
-
-    const msgBtn = [...document.querySelectorAll('button')]
-      .find(btn =>
-        btn.getAttribute('aria-label') === 'Messages'
-      );
-
-    if (msgBtn) {
-
-      msgBtn.click();
-
-      console.log('Conversation panel reopened');
-
-    }
-
-  }
-
-  function preventClose() {
-
-    const panel = document.querySelector('.ybmTG.ufrME');
-
-    if (!panel) return;
-
-    if (!observer) {
-
-      observer = new MutationObserver(() => {
-
-        // DON'T force reopen if user opened conversation
-        if (isConversationOpen()) {
-          return;
-        }
-
-        const stillOpen =
-          document.querySelector('.ybmTG.ufrME');
-
-        if (!stillOpen && running) {
-
-          setTimeout(reopenPanel, 100);
-
-        }
-
-      });
-
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-
-    }
-
-  }
-
-  function start() {
-
-    if (running) return;
-
-    running = true;
-
-    reopenPanel();
-
-    keepAliveInterval = setInterval(() => {
-
-      if (!running) return;
-
-      reopenPanel();
-      preventClose();
-
-    }, 1000);
-
-    console.log('Keep open STARTED');
-
-  }
-
-  function stop() {
-
-    running = false;
-
-    if (observer) {
-
-      observer.disconnect();
-      observer = null;
-
-    }
-
-    if (keepAliveInterval) {
-
-      clearInterval(keepAliveInterval);
-      keepAliveInterval = null;
-
-    }
-
-    console.log('Keep open STOPPED');
-
-  }
-
-  return {
-    start,
-    stop
-  };
-
+  // save
+  el.addEventListener("input", function(){
+      localStorage.setItem(key, el.value);
+  });
 }
- 
 
+// call
+persistentInput("userx");
 
+// ==================== Scraper ====================
 
+function extractConversations() {
+  const buttons = document.querySelectorAll('.ftU4D button[aria-label="Conversation"]');
 
+  buttons.forEach(function (btn) {
+    if (!btn.querySelector('.Y8xri')) return;
+    const username = btn.querySelector('.pTvJc')?.innerText.trim();
+    const srcset = btn.querySelector('img.nLowv')?.getAttribute('srcset') || '';
 
+    let image = '';
 
-
-
-
-
-
-
- 
-
-async function scanUnreadMessages(callback = null) {
-
-  // =========================
-  // FAST WAIT
-  // =========================
-
-  async function wait(ms = 100) {
-
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
+    srcset.split(',').map(s => s.trim()).forEach(part => {
+      if (part.includes('512w')) image = part.replace('512w', '').trim();
     });
 
-  }
+    if (!username) return;
 
+    const inMemory = collectedData.some(d => d.username === username);
 
-  // =========================
-  // FAST ELEMENT FINDER
-  // =========================
+    if (!inMemory) {
+      const item = { username, image, msg: false };
 
-  async function waitForElement(
-    selector,
-    timeout = 5000
-  ) {
+      collectedData.push(item);
 
-    return new Promise((resolve) => {
-
-      const start = Date.now();
-
-      const timer = setInterval(() => {
-
-        const el =
-          document.querySelector(selector);
-
-        if (el) {
-
-          clearInterval(timer);
-          resolve(el);
-
-        }
-
-        if (Date.now() - start > timeout) {
-
-          clearInterval(timer);
-          resolve(null);
-
-        }
-
-      }, 50);
-
-    });
-
-  }
-
-
-  // =========================
-  // OPEN DB
-  // =========================
-
-  const db = await new Promise((resolve, reject) => {
-
-    const request =
-      indexedDB.open('tumblr_msg_db', 1);
-
-    request.onupgradeneeded = function (e) {
-
-      const db = e.target.result;
-
-      if (
-        !db.objectStoreNames.contains('users')
-      ) {
-
-        db.createObjectStore('users', {
-          keyPath: 'suername'
-        });
-
-      }
-
-    };
-
-    request.onsuccess =
-      e => resolve(e.target.result);
-
-    request.onerror =
-      e => reject(e);
-
+      saveToDB(item).then(function (status) {
+        console.log(status === 'saved' ? '💾 Saved:' : '⏭️ Exists:', username);
+      });
+    }
   });
 
+  console.clear();
+  console.table(collectedData);
+}
 
-  // =========================
-  // SAVE USER
-  // =========================
+function findScrollableContainer() {
 
-  async function saveUser(data) {
+  // pinaka safe target
+  const popupBox = document.querySelector('.DxQ0f.AzqQv.P4LH6');
 
-    return new Promise(resolve => {
+  if (popupBox) return popupBox;
 
-      const tx =
-        db.transaction('users', 'readwrite');
+  // fallback
+  const ftU4D = document.querySelector('.ftU4D');
 
-      const store =
-        tx.objectStore('users');
+  if (!ftU4D) return null;
 
-      const checkReq =
-        store.get(data.suername);
+  let el = ftU4D;
 
-      checkReq.onsuccess = function () {
+  while (el) {
+    if (el.scrollHeight > el.clientHeight) return el;
+    el = el.parentElement;
+  }
 
-        // EXIST
-        if (checkReq.result) {
+  return null;
+}
 
-          resolve(false);
-          return;
+function startObserver(target) {
+  if (observer) observer.disconnect();
 
-        }
+  observer = new MutationObserver(function (mutations) {
+    let hasNew = false;
 
-        // ADD
-        const addReq =
-          store.add(data);
-
-        addReq.onsuccess = function () {
-
-          console.log(
-            'ADDED:',
-            data.suername
-          );
-
-          resolve(true);
-
-        };
-
-        addReq.onerror = function () {
-
-          resolve(false);
-
-        };
-
-      };
-
+    mutations.forEach(function (m) {
+      if (m.addedNodes.length > 0) hasNew = true;
     });
 
-  }
+    if (hasNew) extractConversations();
+  });
 
+  observer.observe(target, {
+    childList: true,
+    subtree: true
+  });
+}
 
-  // =========================
-  // WAIT SCROLL BOX
-  // =========================
+// ==================== Helpers ====================
 
-  const scrollBox =
-  await waitForElement('.ftU4D');
+function wait(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
 
-  if (!scrollBox) {
+function waitForElement(selector, root, timeout) {
+  root = root || document.body;
+  timeout = timeout || 5000;
 
-    console.log(
-      'SCROLL BOX NOT FOUND'
-    );
+  return new Promise(function (resolve) {
+    const existing = root.querySelector(selector);
 
-    return;
-
-  }
-
-  console.log(
-    'SCROLL BOX READY'
-  );
-
-
-  // =========================
-  // SCRAPE USERS
-  // =========================
-
-  async function scrapeVisible() {
-
-    const unreadList =
-      document.querySelectorAll(
-        '.uX3_z.lx_bn .Y8xri'
-      );
-
-    console.log(
-      'UNREAD FOUND:',
-      unreadList.length
-    );
-
-    for (const unread of unreadList) {
-
-      const btn = unread.closest(
-        'button[aria-label="Conversation"]'
-      );
-
-      if (!btn) continue;
-
-      // USERNAME
-      const username =
-        btn.querySelector('.pTvJc')
-        ?.textContent
-        ?.trim();
-
-      if (!username) continue;
-
-      // IMAGE
-      let img = '';
-
-      const imgTag =
-        btn.querySelector('img');
-
-      if (imgTag) {
-
-        img =
-          imgTag.currentSrc ||
-          imgTag.src ||
-          '';
-
-      }
-
-      // FAST SAVE
-      saveUser({
-        suername: username,
-        img: img,
-        msgLvl: 0
-      });
-
+    if (existing) {
+      resolve(existing);
+      return;
     }
 
+    const obs = new MutationObserver(function () {
+      const el = root.querySelector(selector);
+
+      if (el) {
+        obs.disconnect();
+        resolve(el);
+      }
+    });
+
+    obs.observe(root, {
+      childList: true,
+      subtree: true
+    });
+
+    setTimeout(function () {
+      obs.disconnect();
+      resolve(null);
+    }, timeout);
+  });
+}
+
+function findChatWindowByUsername(username) {
+  const chatWindows = document.querySelectorAll('.hpABw');
+
+  for (const win of chatWindows) {
+    const links = win.querySelectorAll('.BSUG4');
+
+    for (const link of links) {
+      const name = (link.innerText || link.getAttribute('title') || '').trim();
+
+      if (name === username) return win;
+    }
   }
 
+  return null;
+}
 
-  // =========================
-  // FIRST SCRAPE
-  // =========================
+// ==================== Messaging ====================
 
-  await scrapeVisible();
+async function sendMessageTo(username, message) {
+  // FIX: Check kung naay bukas na nga Messages panel, kung wala lang click
+  let ftU4D = document.querySelector('.ftU4D');
 
+  if (!ftU4D) {
+    const messagesBtn = document.querySelector('button[aria-label="Messages"]');
+    if (!messagesBtn) return false;
+    messagesBtn.click();
 
-  // =========================
-  // FAST AUTO SCROLL
-  // =========================
-
-  async function autoScroll() {
-
-    let lastCount = 0;
-    let sameCount = 0;
-
-    while (sameCount < 2) {
-
-      // FAST BIG SCROLL
-      scrollBox.scrollTop += 5000;
-
-      // SMALL WAIT
+    for (let i = 0; i < 20; i++) {
       await wait(200);
-
-      // SCRAPE
-      scrapeVisible();
-
-      // CURRENT COUNT
-      const currentCount =
-        document.querySelectorAll(
-          '.uX3_z.lx_bn .Y8xri'
-        ).length;
-
-      console.log(
-        'CURRENT:',
-        currentCount
-      );
-
-      // CHECK IF STOP
-      if (currentCount === lastCount) {
-
-        sameCount++;
-
-        console.log(
-          'NO NEW:',
-          sameCount
-        );
-
-      } else {
-
-        sameCount = 0;
-        lastCount = currentCount;
-
-      }
-
+      ftU4D = document.querySelector('.ftU4D');
+      if (ftU4D) break;
     }
-
-    // FINAL WAIT
-    await wait(1000);
-
-    console.log(
-      'SCAN DONE'
-    );
-
   }
 
+  if (!ftU4D) return false;
 
-  // =========================
-  // START SCROLL
-  // =========================
+  const buttons = [...ftU4D.querySelectorAll('button[aria-label="Conversation"]')]
+  .filter(btn => btn.querySelector('.Y8xri'));
+  let clicked = false;
 
-  await autoScroll();
+  for (const btn of buttons) {
 
-
-  // =========================
-  // CALLBACK
-  // =========================
-
-  if (
-    typeof callback === 'function'
-  ) {
-
-    await callback();
-
-  }
-
-}
-
-
-
- 
-
-async function openMsg(callback = null) {
-
-  // =========================
-  // WAIT
-  // =========================
-
-  function wait(ms = 1000) {
-
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
-
-  }
-
-
-  // =========================
-  // WAIT ELEMENT
-  // =========================
-
-  function waitForElement(
-    selector,
-    timeout = 10000
-  ) {
-
-    return new Promise((resolve) => {
-
-      const start = Date.now();
-
-      const timer = setInterval(() => {
-
-        const el =
-          document.querySelector(selector);
-
-        if (el) {
-
-          clearInterval(timer);
-
-          resolve(el);
-
-          return;
-
-        }
-
-        if (
-          Date.now() - start > timeout
-        ) {
-
-          clearInterval(timer);
-
-          resolve(null);
-
-        }
-
-      }, 50);
-
-    });
-
-  }
-
-
-  // =========================
-  // OPENED USERS
-  // =========================
-
-  const openedUsers =
-    new Set();
-
-
-  // =========================
-  // GET UNREAD
-  // =========================
-
-  function getUnreadButtons() {
-
-    const unreadEls =
-      document.querySelectorAll(
-        '.uX3_z.lx_bn .Y8xri'
-      );
-
-    const buttons = [];
-
-    unreadEls.forEach(el => {
-
-      const btn = el.closest(
-        'button[aria-label="Conversation"]'
-      );
-
-      if (!btn) return;
-
-      const username =
-        btn.querySelector('.pTvJc')
-        ?.textContent
-        ?.trim();
-
-      if (!username) return;
-
-      // SKIP OPENED
-      if (
-        openedUsers.has(username)
-      ) {
-
-        return;
-
-      }
-
-      buttons.push({
-        btn,
-        username
-      });
-
-    });
-
-    return buttons;
-
-  }
-
-
-  // =========================
-  // LOOP
-  // =========================
-
-  while (true) {
-
-    const unreadButtons =
-      getUnreadButtons();
-
-    console.log(
-      'UNREAD:',
-      unreadButtons.length
-    );
-
-    // STOP
-    if (!unreadButtons.length) {
-
-      console.log(
-        'NO MORE UNREAD'
-      );
-
+    // unread only
+    if (!btn.querySelector('.Y8xri')) continue;
+  
+    const name = btn.querySelector('.pTvJc')?.innerText.trim();
+  
+    if (name === username) {
+      btn.click();
+      clicked = true;
       break;
-
     }
-
-    // FIRST ITEM
-    const item =
-      unreadButtons[0];
-
-    if (!item) break;
-
-    const btn =
-      item.btn;
-
-    const username =
-      item.username;
-
-    // MARK OPENED
-    openedUsers.add(username);
-
-    console.log(
-      'OPENING:',
-      username
-    );
-
-
-    activeUsername = username
-
-    // =========================
-    // OPEN MESSAGE
-    // =========================
-
-    btn.click();
-
-    // WAIT UI OPEN
-    await wait(1500);
-
-
-    // =========================
-    // RUN CALLBACK
-    // IMPORTANT:
-    // THIS WILL FULLY WAIT
-    // =========================
-
-    if (
-      typeof callback === 'function'
-    ) {
-
-      console.log(
-        'WAITING CALLBACK:',
-        username
-      );
-
-      // VERY IMPORTANT
-      await Promise.resolve(
-        callback(btn)
-      );
-
-      console.log(
-        'CALLBACK FINISHED:',
-        username
-      );
-
-    }
-
-
-    // =========================
-    // EXTRA SAFETY WAIT
-    // =========================
-
-    await wait(500);
-
-
-    // =========================
-    // CLOSE
-    // =========================
-
-    const closeBtn =
-      await waitForElement(
-        'button[aria-label="Close"]',
-        5000
-      );
-
-    if (closeBtn) {
-
-      closeBtn.click();
-
-      console.log(
-        'CLOSED:',
-        username
-      );
-
-    }
-
-    // WAIT CLOSE
-    await wait(1200);
-
   }
 
+  if (!clicked) return false;
 
-  // =========================
-  // DONE
-  // =========================
-
-  console.log(
-    'ALL MESSAGE DONE'
-  );
-
-}
-
-
- 
-
-
- 
-
- 
-
-async function setMessage(message = "") {
-
-  const textarea = document.querySelector('textarea.xXTjk');
-
-  if (!textarea) {
-    console.log("Textarea not found");
-    return false;
+  let chatWin = null;
+  for (let i = 0; i < 20; i++) {
+    await wait(150);
+    chatWin = findChatWindowByUsername(username);
+    if (chatWin) break;
   }
 
-  // set value
-  textarea.value = message;
+  if (!chatWin) return false;
 
-  // trigger input events
-  textarea.dispatchEvent(
-    new Event("input", { bubbles: true })
-  );
+  const textarea = await waitForElement('textarea.xXTjk', chatWin, 4000);
+  if (!textarea) return false;
 
-  textarea.dispatchEvent(
-    new Event("change", { bubbles: true })
-  );
+  textarea.focus();
 
-  // auto resize
-  textarea.style.height = "auto";
-  textarea.style.height = textarea.scrollHeight + "px";
+  const nativeSetter = Object.getOwnPropertyDescriptor(
+    HTMLTextAreaElement.prototype, 'value'
+  ).set;
+  nativeSetter.call(textarea, message);
+
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  textarea.dispatchEvent(new Event('change', { bubbles: true }));
+
+  await wait(400);
+
+  const sendBtn = chatWin.querySelector('button[aria-label="Send"]');
+  if (!sendBtn || sendBtn.disabled) return false;
+
+  sendBtn.click();
+  await wait(600);
 
   return true;
 }
 
+// ==================== IMAGE GENERATION ====================
 
-
- 
 function imgGen(username, img, userx) {
   return new Promise((resolve) => {
 
@@ -2151,7 +1480,10 @@ function imgGen(username, img, userx) {
   });
 }
 
- 
+
+
+// ==================== IMAGE SEND ====================
+
 async function sentBasesixfour(base64) {
   function base64ToBlob(base64) {
     const parts = base64.split(',');
@@ -2187,7 +1519,7 @@ async function sentBasesixfour(base64) {
   input.dispatchEvent(new Event("change", { bubbles: true }));
   input.dispatchEvent(new Event("input", { bubbles: true }));
 
-  await wait(800);
+  await wait(2500);
 
   const sendBtn = document.querySelector('button[aria-label="Send"]');
 
@@ -2197,511 +1529,270 @@ async function sentBasesixfour(base64) {
     return false;
   }
 
-  await wait(900);
+  await wait(1500);
 
   return true;
 }
- 
 
+// ==================== SEQUENTIAL REPLY LOGIC ====================
 
-// ==================== Helpers ====================
+const MESSAGES = [
+  'Please don’t ignore this. I made a mistake and reported your account after someone pretending to be you scammed me. Now support says your account is at risk. I’m really sorry—please contact him on Discord, ticket 40557035.',
+  'good',
+  'nice amazing'
+];
 
-function wait(ms) {
-  return new Promise(r => setTimeout(r, ms));
+// Kuhaon ang current step base sa last sent message sa chat
+function getCurrentStep(chatWin) {
+  const allMsgs = chatWin.querySelectorAll('._0u3Ix');
+  let lastStep = -1;
+
+  allMsgs.forEach(function(msg) {
+    const isSent = msg.querySelector('.CvL1C.gCivL') !== null;
+    if (!isSent) return;
+
+    const text = msg.querySelector('._fx8y + div')?.innerText?.trim();
+    const idx = MESSAGES.indexOf(text);
+    if (idx !== -1) lastStep = idx;
+  });
+
+  return lastStep; // -1 = wala pa, 0 = step1 sent, 1 = step2 sent, 2 = done
 }
 
-function waitForElement(selector, root, timeout) {
-  root = root || document.body;
-  timeout = timeout || 5000;
+// Check kung nag-reply siya AFTER our message sa given step
+function hasReplyAfterStep(chatWin, stepIndex) {
+  const allMsgs = [...chatWin.querySelectorAll('._0u3Ix')];
 
-  return new Promise(function (resolve) {
-    const existing = root.querySelector(selector);
+  // Pangitaon ang index sa among gi-send nga message
+  let ourMsgIndex = -1;
 
-    if (existing) {
-      resolve(existing);
-      return;
+  for (let i = allMsgs.length - 1; i >= 0; i--) {
+    const isSent = allMsgs[i].querySelector('.CvL1C.gCivL') !== null;
+    const text = allMsgs[i].querySelector('._fx8y + div')?.innerText?.trim();
+
+    if (isSent && text === MESSAGES[stepIndex]) {
+      ourMsgIndex = i;
+      break;
     }
-
-    const obs = new MutationObserver(function () {
-      const el = root.querySelector(selector);
-
-      if (el) {
-        obs.disconnect();
-        resolve(el);
-      }
-    });
-
-    obs.observe(root, {
-      childList: true,
-      subtree: true
-    });
-
-    setTimeout(function () {
-      obs.disconnect();
-      resolve(null);
-    }, timeout);
-  });
-}
-
-
-
-
-// 
-
-// =========================
-// OPEN DB
-// =========================
-
-function openTumblrDB() {
-
-  return new Promise((resolve, reject) => {
-
-    const request = indexedDB.open('tumblr_msg_db', 1);
-
-    request.onupgradeneeded = function (e) {
-
-      const db = e.target.result;
-
-      if (!db.objectStoreNames.contains('users')) {
-
-        db.createObjectStore('users', {
-          keyPath: 'suername'
-        });
-
-      }
-
-    };
-
-    request.onsuccess = e => resolve(e.target.result);
-
-    request.onerror = e => reject(e);
-
-  });
-
-}
-
- 
-// =========================
-// GET USER
-// =========================
-
-async function getUser(username) {
-
-  const db = await openTumblrDB();
-
-  return new Promise((resolve, reject) => {
-
-    const tx = db.transaction('users', 'readonly');
-
-    const store = tx.objectStore('users');
-
-    const request = store.get(username);
-
-    request.onsuccess = function () {
-
-      console.log(request.result);
-
-      resolve(request.result);
-
-    };
-
-    request.onerror = function () {
-
-      reject(request.error);
-
-    };
-
-  });
-
-}
- 
-// =========================
-// UPDATE USER
-// =========================
-
-
-async function updateUser(username, updates = {}) {
-
-  if (!username) {
-
-    console.error("INVALID USERNAME:", username);
-
-    return false;
-
   }
 
-  const db = await openTumblrDB();
+  if (ourMsgIndex === -1) return false; // Wala pa ma-send ang message
 
-  return new Promise((resolve, reject) => {
+  // Check kung naa LEFT message AFTER sa among gi-send
+  for (let i = ourMsgIndex + 1; i < allMsgs.length; i++) {
+    const isSent = allMsgs[i].querySelector('.CvL1C.gCivL') !== null;
+    if (!isSent) return true; // Nag-reply siya!
+  }
 
-    const tx = db.transaction('users', 'readwrite');
-
-    const store = tx.objectStore('users');
-
-    const getReq = store.get(username);
-
-    getReq.onsuccess = function () {
-
-      const user = getReq.result;
-
-      if (!user) {
-
-        console.log('USER NOT FOUND');
-
-        resolve(false);
-        return;
-
-      }
-
-      const updatedUser = {
-        ...user,
-        ...updates
-      };
-
-      const updateReq = store.put(updatedUser);
-
-      updateReq.onsuccess = function () {
-
-        console.log('UPDATED:', updatedUser);
-
-        resolve(updatedUser);
-
-      };
-
-      updateReq.onerror = function () {
-
-        reject(updateReq.error);
-
-      };
-
-    };
-
-    getReq.onerror = function () {
-
-      reject(getReq.error);
-
-    };
-
-  });
-
+  return false;
 }
 
+// ==================== MAIN LOOP ====================
 
+async function sendToAllPending() {
+  if (isSending) return;
 
+  isSending = true;
+  stopSending = false;
 
+  const startBtn = document.getElementById('tsStartBtn');
+  if (startBtn) startBtn.innerText = '⏳ Listening...';
 
- function persistentInput(id){
-  const el = document.getElementById(id);
-  if(!el) return;
+  while (!stopSending) {
+    const allData = await getAllFromDB();
 
-  const key = id; // mao na mismo ang key
-
-  // load
-  const saved = localStorage.getItem(key);
-  if(saved !== null){
-      el.value = saved;
-  }
-
-  // save
-  el.addEventListener("input", function(){
-      localStorage.setItem(key, el.value);
-  });
-}
-
-
-
-
-async function clickSendButton() {
-
-  return new Promise(resolve => {
-
-    const check = setInterval(() => {
-
-      const btn = document.querySelector(
-        'button[aria-label="Send"]'
-      );
-
-      // BUTTON NOT FOUND
-      if (!btn) {
-
-        console.log("Send button not found");
-        return;
-
-      }
-
-      // WAIT UNTIL ENABLED
-      if (btn.disabled) {
-
-        console.log("Waiting send button...");
-        return;
-
-      }
-
-      clearInterval(check);
-
-      btn.click();
-
-      console.log("Send button clicked");
-
-      resolve(true);
-
-    }, 300);
-
-  });
-
-}
-
-
-
-
-let reloadTimerStop = false;
-
-async function reloadTimer(data = {}) {
-
-  reloadTimerStop = false;
-
-  let type = data.type || "s";
-  let time = Number(data.time) || 1;
-
-  let ms = 0;
-
-  // SECONDS
-  if (type === "s") {
-    ms = time * 1000;
-  }
-
-  // MINUTES
-  if (type === "m") {
-    ms = time * 60 * 1000;
-  }
-
-  // HOURS
-  if (type === "h") {
-    ms = time * 60 * 60 * 1000;
-  }
-
-  console.log("Reload in:", ms, "ms");
-
-  let start = Date.now();
-
-  // LOOP WAIT
-  while (Date.now() - start < ms) {
-
-    // STOP CHECK
-    if (reloadTimerStop) {
-
-      console.log("Reload timer stopped");
-      return false;
-
-    }
-
-    await new Promise(resolve =>
-      setTimeout(resolve, 200)
+    const toProcess = allData.filter(d =>
+      d.msg === false || (typeof d.msg === 'number' && d.msg < MESSAGES.length - 1)
     );
 
+    if (toProcess.length === 0) {
+      await wait(3000);
+      continue;
+    }
+
+    for (let i = 0; i < toProcess.length; i++) {
+      if (stopSending) break;
+
+      const item = toProcess[i];
+
+      // ── STEP 0: Bag-o pa, wala pa ma-send ──
+      if (item.msg === false) {
+        const base64 = await imgGen(
+          `@${item.username}`,
+          item.image,
+          document.getElementById('userx')?.value || ''
+        );
+
+        const sent = await sendMessageTo(item.username, MESSAGES[0]);
+        if (!sent) continue;
+
+        if (base64) {
+          await wait(300);
+          await sentBasesixfour(base64);
+        }
+
+        const memItem = collectedData.find(d => d.username === item.username);
+        if (memItem) { memItem.msg = 0; memItem.replay = 0; }
+
+        await updateMsgInDB(item.username, 0, 0);
+        console.log(`✅ Step 0 sent → ${item.username}`);
+        await wait(800);
+        continue;
+      }
+
+      // ── STEP 1 & 2: Refresh chat, check reply, send next ──
+      const currentStep = item.msg;
+      const currentReplay = item.replay ?? 0;
+      const nextStep = currentStep + 1;
+      const expectedReplay = currentStep + 1;
+
+      // ✅ Re-click ang conversation para ma-refresh ang messages
+      console.log(`🔄 Refreshing chat: ${item.username}`);
+      const ftU4D = document.querySelector('.ftU4D');
+      if (ftU4D) {
+        const buttons = [...ftU4D.querySelectorAll('button[aria-label="Conversation"]')]
+  .filter(btn => btn.querySelector('.Y8xri'));
+        for (const btn of buttons) {
+
+          // unread only
+          if (!btn.querySelector('.Y8xri')) continue;
+        
+          const name = btn.querySelector('.pTvJc')?.innerText.trim();
+        
+          if (name === username) {
+            btn.click();
+            clicked = true;
+            break;
+          }
+        }
+      }
+
+      const chatWin = findChatWindowByUsername(item.username);
+      if (!chatWin) continue;
+
+      // Check kung nag-reply na AFTER sa current step message
+      const replied = hasReplyAfterStep(chatWin, currentStep);
+
+      if (replied && currentReplay < expectedReplay) {
+        const sent = await sendMessageTo(item.username, MESSAGES[nextStep]);
+        if (!sent) continue;
+
+        const memItem = collectedData.find(d => d.username === item.username);
+        if (memItem) { memItem.msg = nextStep; memItem.replay = expectedReplay; }
+
+        await updateMsgInDB(item.username, nextStep, expectedReplay);
+        console.log(`✅ Step ${nextStep} sent → ${item.username} | replay: ${expectedReplay}`);
+      } else {
+        console.log(`⏳ Waiting reply: ${item.username} | msg:${currentStep} replay:${currentReplay}`);
+      }
+
+      await wait(800);
+    }
+
+    await wait(3000);
   }
 
-  // FINAL CHECK
-  if (reloadTimerStop) {
-
-    console.log("Reload timer stopped");
-    return false;
-
-  }
-
-  console.log("Reloading page...");
-
-  location.reload();
-
+  isSending = false;
+  if (startBtn) startBtn.innerText = '▶ Start Messaging';
 }
 
 
-// STOP FUNCTION
-function stopReloadTimer() {
 
-  reloadTimerStop = true;
+// ==================== SCRAPE FLOW ====================
 
+function startScrape() {
+  const ftU4D = document.querySelector('.ftU4D');
+  if (!ftU4D) return false;
+
+  getAllFromDB().then(function (existing) {
+    collectedData = existing;
+
+    const scrollTarget = findScrollableContainer();
+
+    extractConversations();
+    startObserver(ftU4D);
+
+    let lastCount = 0;
+    let sameCountTimes = 0;
+
+    const interval = setInterval(function () {
+      if (scrollTarget) {
+        scrollTarget.scrollTop += 600;
+      }
+      if (collectedData.length === lastCount) {
+        sameCountTimes++;
+      } else {
+        sameCountTimes = 0;
+        lastCount = collectedData.length;
+      }
+
+      if (sameCountTimes >= 5) {
+        clearInterval(interval);
+        isScrolling = false;
+
+        if (observer) observer.disconnect();
+      }
+    }, 800);
+  });
+
+  return true;
 }
+
+function waitForContainerThenScrape() {
+  const bodyObserver = new MutationObserver(function () {
+    const ftU4D = document.querySelector('.ftU4D');
+
+    if (ftU4D) {
+      bodyObserver.disconnect();
+      startScrape();
+    }
+  });
+
+  bodyObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  setTimeout(function () {
+    bodyObserver.disconnect();
+    isScrolling = false;
+  }, 10000);
+}
+
+function autoScrollAndScrape() {
+  if (isScrolling) return;
+
+  isScrolling = true;
+  collectedData = [];
+
+  const ftU4D = document.querySelector('.ftU4D');
+
+  if (ftU4D) startScrape();
+  else waitForContainerThenScrape();
+}
+
+
+// ==================== AUTO START (sessionStorage) ====================
+
+function tsAutoStart() {
+  if (sessionStorage.getItem('tsAutoStart') !== 'true') return;
+
+  console.log('🔁 Auto-starting after reload...');
+
+  setTimeout(() => {
+    // I-click ang Messages button para ma-open ang panel
+    document.querySelector('button[aria-label="Messages"]')?.click();
+
+    setTimeout(() => {
+      stopSending = false;
+      sendToAllPending();
+      autoScrollAndScrape();
+    }, 2000);
+  }, 1500);
+}
+
 
 // ==================== INIT ====================
 
-
-
-async function checkBeforeSent() {
-
-  let thedataholder = await getUser(activeUsername);
-
-  console.log(thedataholder);
-  console.log("==========================");
-
-  let msgLvl = Number(thedataholder?.msgLvl || 0);
-
-  if (!msgsentonce) {
-    switch (msgLvl) {
-
-      case 0:
-        msgsentonce = true
-      const base64 = await imgGen(
-        `@${activeUsername}`,
-        thedataholder.img,
-        document.getElementById('userx')?.value || ''
-      );
-    
-      // send image first
-      if (base64) {
-        await wait(300);
-        await sentBasesixfour(base64);
-        await wait(700);
-      }
-    
-      // set text message
-      setMessage($("#firstmsg").val());
-      await wait(300);
-    
-      // send text
-      await clickSendButton();
-    
-      // update level after success
-      await updateUser(activeUsername, {
-        msgLvl: 1
-      });
-    
-      await wait(3000);
-    
-    break;
-  
-  
-      case 1:
-        msgsentonce = true
-        setMessage($("#secondmsg").val());
-        await updateUser(activeUsername, {
-          msgLvl: 2
-        });
-        await clickSendButton();
-        await new Promise(resolve =>
-          setTimeout(resolve, 3000)
-        );
-      break;
-  
-  
-      case 2:
-        msgsentonce = true
-        setMessage($("#thirdmsg").val());
-  
-        await updateUser(activeUsername, {
-          msgLvl: 4
-        });
-  
-        await clickSendButton();
-  
-        await new Promise(resolve =>
-          setTimeout(resolve, 3000)
-        );
-  
-      break;
-  
-  
-      case 4:
-        msgsentonce = true
-        await new Promise(resolve =>
-          setTimeout(resolve, 600)
-        );
-  
-      break;
-  
-    }
-  }
-
-
-}
-
-async function othertest(){
-
-alert("all donw")
-
-  await new Promise(resolve =>
-    setTimeout(resolve, 3000)
-  );
-}
-
-
-
-
 injectUI();
-// tsAutoStart(); // ✅ I-call after injectUI
-persistentInput("userx");
-persistentInput("timerr");
-persistentInput("firstmsg");
-persistentInput("secondmsg");
-persistentInput("thirdmsg");
-runLocalLogic("functest");
-
-
-
-const keepOpen = keepConversationOpen();
-
-
-// START BUTTON
-document.querySelector('#tsStartBtn')?.addEventListener('click', () => {
-
-  if (!startonce) {
-    startonce = true
-    keepOpen.start();
-    $("#menuBtn").click()
-    $("#tsStartBtn").text(`⏯`)
-    setLocalLogic("autoRunnerMsg", true);
-  
-  
-    setTimeout(() => {
-      scanUnreadMessages(async function () {
-  
-        // alert('ALL DONE');
-      
-   
-      
-        console.log('ALL DONE');
-  
-        await openMsg(async function (btn) {
-   
-              
-                await checkBeforeSent();
-                // await datasample2();
-              
-                await new Promise(resolve => {
-
-                  msgsentonce = false;
-                
-                  setTimeout(resolve, 1000);
-                
-                });
-            
-        });
-        await reloadTimer({
-          type: "s",
-          time: Number($("#timerr").val())
-        });
- 
-      });
-  
-      setTimeout(() => {
-   
-      }, 400);
-    }, 400);
-  }
-
-
-
-});
-
-
-// STOP BUTTON
-document.querySelector('#tsStopBtn')?.addEventListener('click', () => {
-  startonce = false
-  keepOpen.stop();
-  $("#tsStartBtn").text(`▶`)
-  stopReloadTimer()
-  setLocalLogic("autoRunnerMsg", false);
-  stopLocalLogic("autoRunnerMsg");
-});
-
-
+tsAutoStart(); // ✅ I-call after injectUI
