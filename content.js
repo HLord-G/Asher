@@ -1,22 +1,4 @@
-// content.js
-
-async function scanUnreadMessages() {
-
-  console.log("Scanning...");
-
-  // imong existing logic diri
-
-}
-
-chrome.runtime.onMessage.addListener((msg) => {
-
-  if (msg.action === "keepRunning") {
-
-    scanUnreadMessages();
-
-  }
-
-});
+ 
 
 
 
@@ -1291,7 +1273,7 @@ function injectUI() {
   startBtn.addEventListener('click', function () {
     sessionStorage.setItem('tsAutoStart', 'true'); // ✅ Mark para auto-start after reload
     stopSending = false;
-    sendToAllPending();
+    // sendToAllPending();
     autoScrollAndScrape();
   
     setTimeout(() => {
@@ -1305,7 +1287,7 @@ function injectUI() {
       injectUI();
       setTimeout(() => {
         stopSending = false;
-        sendToAllPending();
+        // sendToAllPending();
         document.querySelector('[aria-label="Messages"]')?.click();
       }, 2000);
     }, 1500);
@@ -2554,6 +2536,15 @@ function stopReloadTimer() {
 async function checkBeforeSent() {
 
   let thedataholder = await getUser(activeUsername);
+  let data_ds = $("[aria-label=Send]")
+
+  if (data_ds.disabled) {
+        msgsentonce = true
+        await new Promise(resolve =>
+          setTimeout(resolve, 600)
+        );
+  } 
+
 
   console.log(thedataholder);
   console.log("==========================");
