@@ -1,3 +1,27 @@
+// content.js
+
+async function scanUnreadMessages() {
+
+  console.log("Scanning...");
+
+  // imong existing logic diri
+
+}
+
+chrome.runtime.onMessage.addListener((msg) => {
+
+  if (msg.action === "keepRunning") {
+
+    scanUnreadMessages();
+
+  }
+
+});
+
+
+
+
+
 // ============================================================
 // OWL BOT - OPTIMIZED (Background Tab Fix)
 // ============================================================
