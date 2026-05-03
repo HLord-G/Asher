@@ -2878,28 +2878,39 @@ function stopReloadTimer() {
 
 async function checkBeforeSent() {
 
-  let thedataholder = await getUser(activeUsername);
-
-  console.log(thedataholder);
-  console.log("==========================");
-
-  let msgLvl = Number(thedataholder?.msgLvl || 0);
-
-  console.log("DATA:", thedataholder);
-  console.log("LEVEL:", msgLvl);
-
+  // =========================================
+  // LOCK
+  // =========================================
   if (msgsentonce) {
     return;
   }
 
-  switch (msgLvl) {
+  msgsentonce = true;
+
+  try {
+
+    let thedataholder = await getUser(activeUsername);
+
+    console.log(thedataholder);
+    console.log("==========================");
+
+    let msgLvl = Number(thedataholder?.msgLvl || 0);
+
+    console.log("DATA:", thedataholder);
+    console.log("LEVEL:", msgLvl);
+
+
+
 
     /* ===================================================== */
     /* CASE 0 */
     /* ===================================================== */
-    case 0:
+    if (msgLvl === 0) {
 
-      msgsentonce = true;
+      // UPDATE FIRST
+      await updateUser(activeUsername, {
+        msgLvl: 1
+      });
 
       const base64 = await imgGen(
         `@${activeUsername}`,
@@ -2923,15 +2934,17 @@ async function checkBeforeSent() {
 
       await wait(700);
 
-      // CHECK SEND BUTTON
+      // CHECK BUTTON
       let btn0 = $("[aria-label=Send]");
 
-      // POSSIBLE BLOCKED
+      // BLOCKED
       if (btn0.prop("disabled")) {
 
-        console.log("Cannot send message. Possible blocked.");
+        console.log("Cannot send message.");
 
         await wait(600);
+
+        await closeConversation();
 
         return;
 
@@ -2940,99 +2953,114 @@ async function checkBeforeSent() {
       // SEND
       await clickSendButton();
 
-      // UPDATE LEVEL
-      await updateUser(activeUsername, {
-        msgLvl: 1
-      });
-
       await wait(3000);
 
-    break;
+    }
+
 
 
 
     /* ===================================================== */
     /* CASE 1 */
     /* ===================================================== */
-    case 1:
+    else if (msgLvl === 1) {
 
-      msgsentonce = true;
+      // UPDATE FIRST
+      await updateUser(activeUsername, {
+        msgLvl: 2
+      });
 
+      // SET MESSAGE
       setMessage($("#secondmsg").val());
 
       await wait(700);
 
+      // CHECK BUTTON
       let btn1 = $("[aria-label=Send]");
 
-      // POSSIBLE BLOCKED
+      // BLOCKED
       if (btn1.prop("disabled")) {
 
-        console.log("Cannot send message. Possible blocked.");
+        console.log("Cannot send message.");
 
         await wait(600);
+
+        await closeConversation();
 
         return;
 
       }
 
+      // SEND
       await clickSendButton();
-
-      await updateUser(activeUsername, {
-        msgLvl: 2
-      });
 
       await wait(3000);
 
-    break;
+    }
+
 
 
 
     /* ===================================================== */
     /* CASE 2 */
     /* ===================================================== */
-    case 2:
+    else if (msgLvl === 2) {
 
-      msgsentonce = true;
+      // UPDATE FIRST
+      await updateUser(activeUsername, {
+        msgLvl: 4
+      });
 
+      // SET MESSAGE
       setMessage($("#thirdmsg").val());
 
       await wait(700);
 
+      // CHECK BUTTON
       let btn2 = $("[aria-label=Send]");
 
-      // POSSIBLE BLOCKED
+      // BLOCKED
       if (btn2.prop("disabled")) {
 
-        console.log("Cannot send message. Possible blocked.");
+        console.log("Cannot send message.");
 
         await wait(600);
+
+        await closeConversation();
 
         return;
 
       }
 
+      // SEND
       await clickSendButton();
-
-      await updateUser(activeUsername, {
-        msgLvl: 4
-      });
 
       await wait(3000);
 
-    break;
+    }
+
 
 
 
     /* ===================================================== */
     /* CASE 4 */
     /* ===================================================== */
-    case 4:
-
-      msgsentonce = true;
+    else if (msgLvl === 4) {
 
       await wait(600);
 
-    break;
+    }
+
+  } catch (err) {
+
+    console.log("ERROR:", err);
+
+  } finally {
+
+    // =========================================
+    // UNLOCK
+    // =========================================
+    msgsentonce = false;
 
   }
 
