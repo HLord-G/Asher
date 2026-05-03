@@ -1499,519 +1499,542 @@ function keepConversationOpen() {
 /*==============================================================================================*/
 async function scanUnreadMessages(callback = null) {
 
-    // =========================
-    // WAIT
-    // =========================
+  // =========================
+  // WAIT
+  // =========================
 
-    async function wait(ms = 300) {
-
-        return new Promise(resolve => {
-            setTimeout(resolve, ms);
-        });
-
-    }
-
-    // =========================
-    // WAIT ELEMENT
-    // =========================
-
-    async function waitForElement(
-        selector,
-        timeout = 15000
-    ) {
-
-        return new Promise(resolve => {
-
-            const existing =
-                document.querySelector(selector);
-
-            if (existing) {
-
-                resolve(existing);
-                return;
-
-            }
-
-            const observer =
-                new MutationObserver(() => {
-
-                    const el =
-                        document.querySelector(selector);
-
-                    if (el) {
-
-                        observer.disconnect();
-                        resolve(el);
-
-                    }
-
-                });
-
-            observer.observe(
-                document.body,
-                {
-                    childList: true,
-                    subtree: true
-                }
-            );
-
-            setTimeout(() => {
-
-                observer.disconnect();
-                resolve(null);
-
-            }, timeout);
-
-        });
-
-    }
-
-    // =========================
-    // OPEN DATABASE
-    // =========================
-
-    const db =
-        await new Promise((resolve, reject) => {
-
-            const request =
-                indexedDB.open(
-                    'tumblr_msg_db',
-                    1
-                );
-
-            request.onupgradeneeded =
-                function (e) {
-
-                    const db =
-                        e.target.result;
-
-                    if (
-                        !db.objectStoreNames.contains(
-                            'users'
-                        )
-                    ) {
-
-                        db.createObjectStore(
-                            'users',
-                            {
-                                keyPath:
-                                    'suername'
-                            }
-                        );
-
-                    }
-
-                };
-
-            request.onsuccess =
-                e => resolve(
-                    e.target.result
-                );
-
-            request.onerror =
-                e => reject(e);
-
-        });
-
-    // =========================
-    // SAVE USER
-    // =========================
-
-    async function saveUser(data) {
+  async function wait(ms = 300) {
 
       return new Promise(resolve => {
-  
+          setTimeout(resolve, ms);
+      });
+
+  }
+
+  // =========================
+  // WAIT ELEMENT
+  // =========================
+
+  async function waitForElement(
+      selector,
+      timeout = 15000
+  ) {
+
+      return new Promise(resolve => {
+
+          const existing =
+              document.querySelector(selector);
+
+          if (existing) {
+
+              resolve(existing);
+              return;
+
+          }
+
+          const observer =
+              new MutationObserver(() => {
+
+                  const el =
+                      document.querySelector(selector);
+
+                  if (el) {
+
+                      observer.disconnect();
+                      resolve(el);
+
+                  }
+
+              });
+
+          observer.observe(
+              document.body,
+              {
+                  childList: true,
+                  subtree: true
+              }
+          );
+
+          setTimeout(() => {
+
+              observer.disconnect();
+              resolve(null);
+
+          }, timeout);
+
+      });
+
+  }
+
+  // =========================
+  // OPEN DATABASE
+  // =========================
+
+  const db =
+      await new Promise((resolve, reject) => {
+
+          const request =
+              indexedDB.open(
+                  'tumblr_msg_db',
+                  1
+              );
+
+          request.onupgradeneeded =
+              function (e) {
+
+                  const db =
+                      e.target.result;
+
+                  if (
+                      !db.objectStoreNames.contains(
+                          'users'
+                      )
+                  ) {
+
+                      db.createObjectStore(
+                          'users',
+                          {
+                              keyPath:
+                                  'suername'
+                          }
+                      );
+
+                  }
+
+              };
+
+          request.onsuccess =
+              e => resolve(
+                  e.target.result
+              );
+
+          request.onerror =
+              e => reject(e);
+
+      });
+
+  // =========================
+  // SAVE USER
+  // =========================
+
+  async function saveUser(data) {
+
+      return new Promise(resolve => {
+
           const tx =
               db.transaction(
                   'users',
                   'readwrite'
               );
-  
+
           const store =
               tx.objectStore('users');
-  
-          // CHECK EXISTING
+
           const getReq =
               store.get(
                   data.suername
               );
-  
+
           getReq.onsuccess =
               function () {
-  
+
                   const oldData =
                       getReq.result;
-  
+
                   // =========================
-                  // IF EXIST
+                  // UPDATE EXISTING
                   // =========================
-  
+
                   if (oldData) {
-  
-                      // update unread only
+
                       oldData.unread =
                           data.unread;
-  
-                      // OPTIONAL:
-                      // update latest message
+
                       oldData.lastMsg =
                           data.lastMsg ||
                           oldData.lastMsg;
-  
-                      // OPTIONAL:
-                      // update image
+
                       oldData.img =
                           data.img ||
                           oldData.img;
-  
-                      // preserve:
-                      // msgLvl
-                      // created
-                      // other custom data
-  
+
                       const updateReq =
                           store.put(oldData);
-  
+
                       updateReq.onsuccess =
                           () => {
-  
+
                               console.log(
                                   'UPDATED:',
                                   oldData.suername
                               );
-  
+
                               resolve(true);
-  
+
                           };
-  
+
                       updateReq.onerror =
                           () => resolve(false);
-  
+
                       return;
-  
+
                   }
-  
+
                   // =========================
                   // NEW USER
                   // =========================
-  
+
                   const newData = {
-  
+
                       suername:
                           data.suername,
-  
+
                       img:
                           data.img || '',
-  
+
                       lastMsg:
                           data.lastMsg || '',
-  
+
                       unread:
                           data.unread || false,
-  
-                      // DEFAULT ONLY ON NEW
+
                       msgLvl:
                           0,
-  
+
                       created:
                           Date.now()
-  
+
                   };
-  
+
                   const addReq =
                       store.add(newData);
-  
+
                   addReq.onsuccess =
                       () => {
-  
+
                           console.log(
                               'NEW USER:',
                               newData.suername
                           );
-  
+
                           resolve(true);
-  
+
                       };
-  
+
                   addReq.onerror =
                       () => resolve(false);
-  
+
               };
-  
+
       });
-  
-}
 
-    // =========================
-    // OPEN MESSAGE PANEL
-    // =========================
+  }
 
-    async function openMessages() {
+  // =========================
+  // OPEN MESSAGE PANEL
+  // =========================
 
-        const btn =
-            await waitForElement(
-                'button[aria-label="Messages"]'
-            );
+  async function openMessages() {
 
-        if (!btn) {
+      const btn =
+          await waitForElement(
+              'button[aria-label="Messages"]'
+          );
 
-            console.log(
-                'MESSAGE BUTTON NOT FOUND'
-            );
+      if (!btn) {
 
-            return false;
+          console.log(
+              'MESSAGE BUTTON NOT FOUND'
+          );
 
-        }
+          return false;
 
-        btn.click();
+      }
 
-        console.log(
-            'OPENING MESSAGES'
-        );
+      btn.click();
 
-        const panel =
-            await waitForElement(
-                '.ftU4D'
-            );
+      console.log(
+          'OPENING MESSAGES'
+      );
 
-        if (!panel) {
+      const panel =
+          await waitForElement(
+              '.EXUkD'
+          );
 
-            console.log(
-                'MESSAGE PANEL FAIL'
-            );
+      if (!panel) {
 
-            return false;
+          console.log(
+              'MESSAGE PANEL FAIL'
+          );
 
-        }
+          return false;
 
-        console.log(
-            'MESSAGE PANEL READY'
-        );
+      }
 
-        return true;
+      console.log(
+          'MESSAGE PANEL READY'
+      );
 
-    }
+      return true;
 
-    const opened =
-        await openMessages();
+  }
 
-    if (!opened) return;
+  const opened =
+      await openMessages();
 
-    // IMPORTANT
-    // hulat render tanan convo
+  if (!opened) return;
 
-    await wait(3000);
+  // WAIT FULL RENDER
+  await wait(4000);
 
-    // =========================
-    // GET PANEL
-    // =========================
+  // =========================
+  // GET PANEL
+  // =========================
 
-    const panel =
-        document.querySelector('.ftU4D');
+  let panel =
+      document.querySelector('.EXUkD');
 
-    if (!panel) {
+  // FALLBACK
+  if (!panel) {
 
-        console.log(
-            'PANEL NOT FOUND'
-        );
+      panel =
+          document.querySelector('.EXUkD');
 
-        return;
+  }
 
-    }
+  if (!panel) {
 
-    // =========================
-    // TRACK USERS
-    // =========================
+      console.log(
+          'SCROLL PANEL NOT FOUND'
+      );
 
-    const scanned =
-        new Set();
+      return;
 
-    // =========================
-    // SCRAPE USERS
-    // =========================
+  }
 
-    async function scrapeVisible() {
+  console.log({
 
-        // IMPORTANT:
-        // ONLY unread users
+      scrollHeight:
+          panel.scrollHeight,
 
-        const convos =
-            [
-                ...document.querySelectorAll(
-                    'button[aria-label="Conversation"]'
-                )
-            ];
+      clientHeight:
+          panel.clientHeight,
 
-        console.log(
-            'FOUND:',
-            convos.length
-        );
+      scrollTop:
+          panel.scrollTop
 
-        for (const btn of convos) {
+  });
 
-            // CHECK UNREAD FIRST
-            const unread =
-                !!btn.querySelector(
-                    '.Y8xri'
-                );
+  // =========================
+  // TRACK USERS
+  // =========================
 
-            // skip if not unread
-            if (!unread) continue;
+  const scanned =
+      new Set();
 
-            const username =
-                btn.querySelector('.pTvJc')
-                ?.innerText
-                ?.trim();
+  // =========================
+  // SCRAPE USERS
+  // =========================
 
-            if (!username) continue;
+  async function scrapeVisible() {
 
-            // DUPLICATE
-            if (
-                scanned.has(username)
-            ) continue;
+      const convos =
+          [
+              ...document.querySelectorAll(
+                  'button[aria-label="Conversation"]'
+              )
+          ];
 
-            scanned.add(username);
+      console.log(
+          'VISIBLE CONVOS:',
+          convos.length
+      );
 
-            // IMAGE
-            let img = '';
+      for (const btn of convos) {
 
-            const imgTag =
-                btn.querySelector('img');
+          // CHECK UNREAD
+          const unread =
+              !!btn.querySelector(
+                  '.Y8xri'
+              );
 
-            if (imgTag) {
+          // SKIP READ
+          if (!unread) continue;
 
-                img =
-                    imgTag.currentSrc ||
-                    imgTag.src ||
-                    '';
+          const username =
+              btn.querySelector('.pTvJc')
+              ?.innerText
+              ?.trim();
 
-            }
+          if (!username) continue;
 
-            // LAST MESSAGE
-            const lastMsg =
-                btn.querySelector(
-                    '.FZe6i'
-                )
-                ?.innerText
-                ?.trim() || '';
+          // SKIP DUPLICATE
+          if (
+              scanned.has(username)
+          ) continue;
 
-            console.log(
-                'UNREAD FOUND:',
-                username
-            );
+          scanned.add(username);
 
-            // SAVE
-            await saveUser({
+          // IMAGE
+          let img = '';
 
-                suername:
-                    username,
+          const imgTag =
+              btn.querySelector('img');
 
-                img:
-                    img,
+          if (imgTag) {
 
-                lastMsg:
-                    lastMsg,
+              img =
+                  imgTag.currentSrc ||
+                  imgTag.src ||
+                  '';
 
-                unread:
-                    true,
+          }
 
-                msgLvl:
-                    0,
+          // LAST MESSAGE
+          const lastMsg =
+              btn.querySelector(
+                  '.FZe6i'
+              )
+              ?.innerText
+              ?.trim() || '';
 
-                created:
-                    Date.now()
+          console.log(
+              'UNREAD FOUND:',
+              username
+          );
 
-            });
+          await saveUser({
 
-        }
+              suername:
+                  username,
 
-    }
+              img:
+                  img,
 
-    // =========================
-    // FORCE SCAN
-    // =========================
+              lastMsg:
+                  lastMsg,
 
-    async function forceScrollScan() {
+              unread:
+                  true
 
-        let lastHeight = 0;
-        let stopCount = 0;
+          });
 
-        while (true) {
+      }
 
-            // SCRAPE BEFORE SCROLL
-            await scrapeVisible();
+  }
 
-            // FORCE SCROLL
-            panel.scrollTop += 500;
+  // =========================
+  // FORCE SCROLL SCAN
+  // =========================
 
-            // WAIT RENDER
-            await wait(2000);
+  async function forceScrollScan() {
 
-            // SCRAPE AGAIN
-            await scrapeVisible();
+      let lastHeight = 0;
+      let sameCount = 0;
 
-            // END CHECK
-            if (
-                panel.scrollTop === lastHeight
-            ) {
+      while (true) {
 
-                stopCount++;
+          // SCAN CURRENT
+          await scrapeVisible();
 
-            } else {
+          // FORCE SCROLL
+          panel.scrollTo({
 
-                stopCount = 0;
-                lastHeight =
-                    panel.scrollTop;
+              top:
+                  panel.scrollTop + 1200,
 
-            }
+              behavior:
+                  'instant'
 
-            console.log({
-                scrollTop:
-                    panel.scrollTop,
-                scanned:
-                    scanned.size
-            });
+          });
 
-            // STOP
-            if (stopCount >= 3) {
+          // FORCE EVENT
+          panel.dispatchEvent(
+              new Event('scroll')
+          );
 
-                break;
+          console.log({
 
-            }
+              scrollTop:
+                  panel.scrollTop,
 
-        }
+              scrollHeight:
+                  panel.scrollHeight,
 
-    }
+              scanned:
+                  scanned.size
 
-    // =========================
-    // START
-    // =========================
+          });
 
-    await forceScrollScan();
+          // WAIT LAZY LOAD
+          await wait(2500);
 
-    // FINAL SCRAPE
-    await scrapeVisible();
+          // SCAN AGAIN
+          await scrapeVisible();
 
-    console.log({
-        totalUnread:
-            scanned.size
-    });
+          // CHECK END
+          if (
+              panel.scrollHeight ===
+              lastHeight
+          ) {
 
-    console.log(
-        'SCAN COMPLETE'
-    );
+              sameCount++;
 
-    // =========================
-    // CALLBACK
-    // =========================
+          } else {
 
-    if (
-        typeof callback === 'function'
-    ) {
+              sameCount = 0;
+              lastHeight =
+                  panel.scrollHeight;
 
-        await callback();
+          }
 
-    }
+          // STOP
+          if (sameCount >= 3) {
+
+              console.log(
+                  'END OF LIST'
+              );
+
+              break;
+
+          }
+
+      }
+
+  }
+
+  // =========================
+  // START SCAN
+  // =========================
+
+  await forceScrollScan();
+
+  // FINAL SCRAPE
+  await scrapeVisible();
+
+  console.log({
+
+      totalUnread:
+          scanned.size
+
+  });
+
+  console.log(
+      'SCAN COMPLETE'
+  );
+
+  // =========================
+  // CALLBACK
+  // =========================
+
+  if (
+      typeof callback === 'function'
+  ) {
+
+      await callback();
+
+  }
 
 }
 /* ======================================= [E] **** [E] ======================================= */
@@ -2856,107 +2879,162 @@ function stopReloadTimer() {
 async function checkBeforeSent() {
 
   let thedataholder = await getUser(activeUsername);
-  let data_ds = $("[aria-label=Send]")
-
-  if (data_ds.disabled) {
-        msgsentonce = true
-        await new Promise(resolve =>
-          setTimeout(resolve, 600)
-        );
-  } 
-
-// alert(activeUsername)
-
 
   console.log(thedataholder);
   console.log("==========================");
 
   let msgLvl = Number(thedataholder?.msgLvl || 0);
-console.log("DATA:", thedataholder);
-console.log("LEVEL:", msgLvl);
 
-console.log("RAW:", thedataholder);
-console.log("TYPE:", typeof thedataholder?.msgLvl);
-console.log("FINAL:", msgLvl);
+  console.log("DATA:", thedataholder);
+  console.log("LEVEL:", msgLvl);
 
   if (msgsentonce) {
-      return
+    return;
   }
 
-    switch (msgLvl) {
+  switch (msgLvl) {
 
-      case 0:
-        msgsentonce = true
+    /* ===================================================== */
+    /* CASE 0 */
+    /* ===================================================== */
+    case 0:
+
+      msgsentonce = true;
+
       const base64 = await imgGen(
         `@${activeUsername}`,
         thedataholder.img,
         document.getElementById('userx')?.value || ''
       );
-    
-      // send image first
+
+      // SEND IMAGE
       if (base64) {
+
         await wait(300);
+
         await sentBasesixfour(base64);
+
         await wait(700);
+
       }
-    
-      // set text message
+
+      // SET MESSAGE
       setMessage($("#firstmsg").val());
-      await wait(300);
-    
-      // send text
+
+      await wait(700);
+
+      // CHECK SEND BUTTON
+      let btn0 = $("[aria-label=Send]");
+
+      // POSSIBLE BLOCKED
+      if (btn0.prop("disabled")) {
+
+        console.log("Cannot send message. Possible blocked.");
+
+        await wait(600);
+
+        return;
+
+      }
+
+      // SEND
       await clickSendButton();
-    
-      // update level after success
+
+      // UPDATE LEVEL
       await updateUser(activeUsername, {
         msgLvl: 1
       });
-    
-      await wait(3000);
-    
-    break;
-  
-  
-      case 1:
-        msgsentonce = true
-        setMessage($("#secondmsg").val());
-        await updateUser(activeUsername, {
-          msgLvl: 2
-        });
-        await clickSendButton();
-        await new Promise(resolve =>
-          setTimeout(resolve, 3000)
-        );
-      break;
-  
-  
-      case 2:
-        msgsentonce = true
-        setMessage($("#thirdmsg").val());
-  
-        await updateUser(activeUsername, {
-          msgLvl: 4
-        });
-  
-        await clickSendButton();
-  
-        await new Promise(resolve =>
-          setTimeout(resolve, 3000)
-        );
-  
-      break;
-  
-  
-      case 4:
-        msgsentonce = true
-        await new Promise(resolve =>
-          setTimeout(resolve, 600)
-        );
-  
-      break;
-  
-    }
 
+      await wait(3000);
+
+    break;
+
+
+
+    /* ===================================================== */
+    /* CASE 1 */
+    /* ===================================================== */
+    case 1:
+
+      msgsentonce = true;
+
+      setMessage($("#secondmsg").val());
+
+      await wait(700);
+
+      let btn1 = $("[aria-label=Send]");
+
+      // POSSIBLE BLOCKED
+      if (btn1.prop("disabled")) {
+
+        console.log("Cannot send message. Possible blocked.");
+
+        await wait(600);
+
+        return;
+
+      }
+
+      await clickSendButton();
+
+      await updateUser(activeUsername, {
+        msgLvl: 2
+      });
+
+      await wait(3000);
+
+    break;
+
+
+
+    /* ===================================================== */
+    /* CASE 2 */
+    /* ===================================================== */
+    case 2:
+
+      msgsentonce = true;
+
+      setMessage($("#thirdmsg").val());
+
+      await wait(700);
+
+      let btn2 = $("[aria-label=Send]");
+
+      // POSSIBLE BLOCKED
+      if (btn2.prop("disabled")) {
+
+        console.log("Cannot send message. Possible blocked.");
+
+        await wait(600);
+
+        return;
+
+      }
+
+      await clickSendButton();
+
+      await updateUser(activeUsername, {
+        msgLvl: 4
+      });
+
+      await wait(3000);
+
+    break;
+
+
+
+    /* ===================================================== */
+    /* CASE 4 */
+    /* ===================================================== */
+    case 4:
+
+      msgsentonce = true;
+
+      await wait(600);
+
+    break;
+
+  }
 
 }
 
