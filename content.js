@@ -844,7 +844,6 @@ $(document).on("click", "[starts]", function () {
 $(document).on("click", "[stopoperation]", function () {
   breakerStop();
   fullStop();
-  setStartBtn("idle");
 });
 
 
@@ -938,7 +937,7 @@ function getRandomComment(text) {
 
 
 
-
+// 00 MENU
 //======================================================================================================================================================= Messages Area
 
 let collectedData = [];
@@ -957,19 +956,20 @@ const DB_VERSION = 1;
 
 
 
-/* ============================================ [S] ONLOAD RUNNER [S] ============================================ */
+/* ======================================= [S] **** [S] ======================================= */
+// ONLOAD RUNNER  
+/*==============================================================================================*/
 
-// =========================
-// SAVE FUNCTIONS
-// =========================
-
+ 
+/* ==========================[*] * [*]========================== */
+/* SAVE FUNCTIONS */ 
+/* ==========================[*] * [*]========================== */
 const localLogicFunctions = {};
 
-
-// =========================
-// REGISTER FUNCTION
-// =========================
-
+ 
+/* ==========================[*] * [*]========================== */
+/* REGISTER FUNCTION */ 
+/* ==========================[*] * [*]========================== */
 function setLocalLogic(name, value) {
 
   // SAVE FUNCTION
@@ -989,11 +989,10 @@ function setLocalLogic(name, value) {
 
 }
 
-
-// =========================
-// RUN LOGIC
-// =========================
-
+ 
+/* ==========================[*] * [*]========================== */
+/* RUN LOGIC */ 
+/* ==========================[*] * [*]========================== */
 async function runLocalLogic(name) {
 
   const status = JSON.parse(
@@ -1023,12 +1022,12 @@ async function runLocalLogic(name) {
   return true;
 
 }
+ 
 
-
-// =========================
-// STOP LOGIC
-// =========================
-
+ 
+/* ==========================[*] * [*]========================== */
+/* STOP LOGIC */ 
+/* ==========================[*] * [*]========================== */
 function stopLocalLogic(name) {
 
   localStorage.setItem(
@@ -1041,10 +1040,10 @@ function stopLocalLogic(name) {
 }
 
 
-// =========================
-// AUTO RUN ON LOAD
-// =========================
-
+ 
+/* ==========================[*] * [*]========================== */
+/* AUTO RUN ON LOAD */ 
+/* ==========================[*] * [*]========================== */
 window.addEventListener("load", async () => {
 
   for (const name in localLogicFunctions) {
@@ -1062,28 +1061,37 @@ window.addEventListener("load", async () => {
   }
 
 });
-// ====================================================================== []
-// RUN LOGGIC
-// ====================================================================== []
+
+
+ 
+/* ==========================[*] * [*]========================== */
+/* RUN LOGGIC */ 
+/* ==========================[*] * [*]========================== */
 setLocalLogic("autoRunnerMsg", async function () {
 
 
   $("[mainBox]").hide()
+
+  offRefreshStatus()
 
   setTimeout(() => {
     $("#tsStartBtn").click()
   }, 4000);
 
 
+  breakerStop();
+  fullStop();
+
   
 });
-/* ============================================ [E] ONLOAD RUNNER [E] ============================================ */
+/* ======================================= [E] **** [E] ======================================= */
 
 
 
 
-// ==================== UI ====================
-
+/* ======================================= [S] **** [S] ======================================= */
+// UI 
+/*==============================================================================================*/
 function injectUI() {
   if (document.getElementById('tsBtnWrapper')) return;
 
@@ -1274,7 +1282,7 @@ function injectUI() {
     sessionStorage.setItem('tsAutoStart', 'true'); // ✅ Mark para auto-start after reload
     stopSending = false;
     // sendToAllPending();
-    autoScrollAndScrape();
+    // autoScrollAndScrape();
   
     setTimeout(() => {
       document.querySelector('[aria-label="Messages"]')?.click();
@@ -1306,19 +1314,55 @@ function injectUI() {
     console.log('⏹ Stopped. Auto-start cleared.');
   });
 }
+/* ======================================= [E] **** [E] ======================================= */
 
-function setStatus(msg) {
-  console.log('[Status]', msg);
+
+
+
+/* ======================================= [S] **** [S] ======================================= */
+// OFF REFRESH STATUS 
+/*==============================================================================================*/
+function offRefreshStatus() {
+
+    const checkbox =
+      document.querySelector(
+        'input[refresh_status]'
+      );
+
+    if (!checkbox) {
+
+      console.log(
+        'CHECKBOX NOT FOUND'
+      );
+
+      return false;
+
+    }
+
+    // OFF
+    checkbox.checked = false;
+
+    // OPTIONAL TRIGGER
+    checkbox.dispatchEvent(
+      new Event('change', {
+        bubbles: true
+      })
+    );
+
+    console.log(
+      'REFRESH STATUS OFF'
+    );
+
+    return true;
+
 }
-
-
- 
-
+/* ======================================= [E] **** [E] ======================================= */
 
 
 
-
-
+/* ======================================= [S] **** [S] ======================================= */
+// GET ALL COMMINTS
+/*==============================================================================================*/
 function keepConversationOpen() {
 
   let observer = null;
@@ -1446,337 +1490,536 @@ function keepConversationOpen() {
   };
 
 }
- 
+/* ======================================= [E] **** [E] ======================================= */
 
 
 
-
-
-
-
-
-
-
-
-
- 
-
+/* ======================================= [S] **** [S] ======================================= */
+// SCAN UNREAD MESSAGES
+/*==============================================================================================*/
 async function scanUnreadMessages(callback = null) {
 
-  // =========================
-  // FAST WAIT
-  // =========================
+    // =========================
+    // WAIT
+    // =========================
 
-  async function wait(ms = 100) {
+    async function wait(ms = 300) {
 
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
-
-  }
-
-
-  // =========================
-  // FAST ELEMENT FINDER
-  // =========================
-
-  async function waitForElement(
-    selector,
-    timeout = 5000
-  ) {
-
-    return new Promise((resolve) => {
-
-      const start = Date.now();
-
-      const timer = setInterval(() => {
-
-        const el =
-          document.querySelector(selector);
-
-        if (el) {
-
-          clearInterval(timer);
-          resolve(el);
-
-        }
-
-        if (Date.now() - start > timeout) {
-
-          clearInterval(timer);
-          resolve(null);
-
-        }
-
-      }, 50);
-
-    });
-
-  }
-
-
-  // =========================
-  // OPEN DB
-  // =========================
-
-  const db = await new Promise((resolve, reject) => {
-
-    const request =
-      indexedDB.open('tumblr_msg_db', 1);
-
-    request.onupgradeneeded = function (e) {
-
-      const db = e.target.result;
-
-      if (
-        !db.objectStoreNames.contains('users')
-      ) {
-
-        db.createObjectStore('users', {
-          keyPath: 'suername'
+        return new Promise(resolve => {
+            setTimeout(resolve, ms);
         });
 
-      }
+    }
 
-    };
+    // =========================
+    // WAIT ELEMENT
+    // =========================
 
-    request.onsuccess =
-      e => resolve(e.target.result);
+    async function waitForElement(
+        selector,
+        timeout = 15000
+    ) {
 
-    request.onerror =
-      e => reject(e);
+        return new Promise(resolve => {
 
-  });
+            const existing =
+                document.querySelector(selector);
 
+            if (existing) {
 
-  // =========================
-  // SAVE USER
-  // =========================
+                resolve(existing);
+                return;
 
-  async function saveUser(data) {
+            }
 
-    return new Promise(resolve => {
+            const observer =
+                new MutationObserver(() => {
 
-      const tx =
-        db.transaction('users', 'readwrite');
+                    const el =
+                        document.querySelector(selector);
 
-      const store =
-        tx.objectStore('users');
+                    if (el) {
 
-      const checkReq =
-        store.get(data.suername);
+                        observer.disconnect();
+                        resolve(el);
 
-      checkReq.onsuccess = function () {
+                    }
 
-        // EXIST
-        if (checkReq.result) {
+                });
 
-          resolve(false);
-          return;
+            observer.observe(
+                document.body,
+                {
+                    childList: true,
+                    subtree: true
+                }
+            );
+
+            setTimeout(() => {
+
+                observer.disconnect();
+                resolve(null);
+
+            }, timeout);
+
+        });
+
+    }
+
+    // =========================
+    // OPEN DATABASE
+    // =========================
+
+    const db =
+        await new Promise((resolve, reject) => {
+
+            const request =
+                indexedDB.open(
+                    'tumblr_msg_db',
+                    1
+                );
+
+            request.onupgradeneeded =
+                function (e) {
+
+                    const db =
+                        e.target.result;
+
+                    if (
+                        !db.objectStoreNames.contains(
+                            'users'
+                        )
+                    ) {
+
+                        db.createObjectStore(
+                            'users',
+                            {
+                                keyPath:
+                                    'suername'
+                            }
+                        );
+
+                    }
+
+                };
+
+            request.onsuccess =
+                e => resolve(
+                    e.target.result
+                );
+
+            request.onerror =
+                e => reject(e);
+
+        });
+
+    // =========================
+    // SAVE USER
+    // =========================
+
+    async function saveUser(data) {
+
+      return new Promise(resolve => {
+  
+          const tx =
+              db.transaction(
+                  'users',
+                  'readwrite'
+              );
+  
+          const store =
+              tx.objectStore('users');
+  
+          // CHECK EXISTING
+          const getReq =
+              store.get(
+                  data.suername
+              );
+  
+          getReq.onsuccess =
+              function () {
+  
+                  const oldData =
+                      getReq.result;
+  
+                  // =========================
+                  // IF EXIST
+                  // =========================
+  
+                  if (oldData) {
+  
+                      // update unread only
+                      oldData.unread =
+                          data.unread;
+  
+                      // OPTIONAL:
+                      // update latest message
+                      oldData.lastMsg =
+                          data.lastMsg ||
+                          oldData.lastMsg;
+  
+                      // OPTIONAL:
+                      // update image
+                      oldData.img =
+                          data.img ||
+                          oldData.img;
+  
+                      // preserve:
+                      // msgLvl
+                      // created
+                      // other custom data
+  
+                      const updateReq =
+                          store.put(oldData);
+  
+                      updateReq.onsuccess =
+                          () => {
+  
+                              console.log(
+                                  'UPDATED:',
+                                  oldData.suername
+                              );
+  
+                              resolve(true);
+  
+                          };
+  
+                      updateReq.onerror =
+                          () => resolve(false);
+  
+                      return;
+  
+                  }
+  
+                  // =========================
+                  // NEW USER
+                  // =========================
+  
+                  const newData = {
+  
+                      suername:
+                          data.suername,
+  
+                      img:
+                          data.img || '',
+  
+                      lastMsg:
+                          data.lastMsg || '',
+  
+                      unread:
+                          data.unread || false,
+  
+                      // DEFAULT ONLY ON NEW
+                      msgLvl:
+                          0,
+  
+                      created:
+                          Date.now()
+  
+                  };
+  
+                  const addReq =
+                      store.add(newData);
+  
+                  addReq.onsuccess =
+                      () => {
+  
+                          console.log(
+                              'NEW USER:',
+                              newData.suername
+                          );
+  
+                          resolve(true);
+  
+                      };
+  
+                  addReq.onerror =
+                      () => resolve(false);
+  
+              };
+  
+      });
+  
+}
+
+    // =========================
+    // OPEN MESSAGE PANEL
+    // =========================
+
+    async function openMessages() {
+
+        const btn =
+            await waitForElement(
+                'button[aria-label="Messages"]'
+            );
+
+        if (!btn) {
+
+            console.log(
+                'MESSAGE BUTTON NOT FOUND'
+            );
+
+            return false;
 
         }
 
-        // ADD
-        const addReq =
-          store.add(data);
-
-        addReq.onsuccess = function () {
-
-          console.log(
-            'ADDED:',
-            data.suername
-          );
-
-          resolve(true);
-
-        };
-
-        addReq.onerror = function () {
-
-          resolve(false);
-
-        };
-
-      };
-
-    });
-
-  }
-
-
-  // =========================
-  // WAIT SCROLL BOX
-  // =========================
-
-  const scrollBox =
-  await waitForElement('.ftU4D');
-
-  if (!scrollBox) {
-
-    console.log(
-      'SCROLL BOX NOT FOUND'
-    );
-
-    return;
-
-  }
-
-  console.log(
-    'SCROLL BOX READY'
-  );
-
-
-  // =========================
-  // SCRAPE USERS
-  // =========================
-
-  async function scrapeVisible() {
-
-    const unreadList =
-      document.querySelectorAll(
-        '.uX3_z.lx_bn .Y8xri'
-      );
-
-    console.log(
-      'UNREAD FOUND:',
-      unreadList.length
-    );
-
-    for (const unread of unreadList) {
-
-      const btn = unread.closest(
-        'button[aria-label="Conversation"]'
-      );
-
-      if (!btn) continue;
-
-      // USERNAME
-      const username =
-        btn.querySelector('.pTvJc')
-        ?.textContent
-        ?.trim();
-
-      if (!username) continue;
-
-      // IMAGE
-      let img = '';
-
-      const imgTag =
-        btn.querySelector('img');
-
-      if (imgTag) {
-
-        img =
-          imgTag.currentSrc ||
-          imgTag.src ||
-          '';
-
-      }
-
-      // FAST SAVE
-      saveUser({
-        suername: username,
-        img: img,
-        msgLvl: 0
-      });
-
-    }
-
-  }
-
-
-  // =========================
-  // FIRST SCRAPE
-  // =========================
-
-  await scrapeVisible();
-
-
-  // =========================
-  // FAST AUTO SCROLL
-  // =========================
-
-  async function autoScroll() {
-
-    let lastCount = 0;
-    let sameCount = 0;
-
-    while (sameCount < 2) {
-
-      // FAST BIG SCROLL
-      scrollBox.scrollTop += 5000;
-
-      // SMALL WAIT
-      await wait(200);
-
-      // SCRAPE
-      scrapeVisible();
-
-      // CURRENT COUNT
-      const currentCount =
-        document.querySelectorAll(
-          '.uX3_z.lx_bn .Y8xri'
-        ).length;
-
-      console.log(
-        'CURRENT:',
-        currentCount
-      );
-
-      // CHECK IF STOP
-      if (currentCount === lastCount) {
-
-        sameCount++;
+        btn.click();
 
         console.log(
-          'NO NEW:',
-          sameCount
+            'OPENING MESSAGES'
         );
 
-      } else {
+        const panel =
+            await waitForElement(
+                '.ftU4D'
+            );
 
-        sameCount = 0;
-        lastCount = currentCount;
+        if (!panel) {
 
-      }
+            console.log(
+                'MESSAGE PANEL FAIL'
+            );
+
+            return false;
+
+        }
+
+        console.log(
+            'MESSAGE PANEL READY'
+        );
+
+        return true;
 
     }
 
-    // FINAL WAIT
-    await wait(1000);
+    const opened =
+        await openMessages();
+
+    if (!opened) return;
+
+    // IMPORTANT
+    // hulat render tanan convo
+
+    await wait(3000);
+
+    // =========================
+    // GET PANEL
+    // =========================
+
+    const panel =
+        document.querySelector('.ftU4D');
+
+    if (!panel) {
+
+        console.log(
+            'PANEL NOT FOUND'
+        );
+
+        return;
+
+    }
+
+    // =========================
+    // TRACK USERS
+    // =========================
+
+    const scanned =
+        new Set();
+
+    // =========================
+    // SCRAPE USERS
+    // =========================
+
+    async function scrapeVisible() {
+
+        // IMPORTANT:
+        // ONLY unread users
+
+        const convos =
+            [
+                ...document.querySelectorAll(
+                    'button[aria-label="Conversation"]'
+                )
+            ];
+
+        console.log(
+            'FOUND:',
+            convos.length
+        );
+
+        for (const btn of convos) {
+
+            // CHECK UNREAD FIRST
+            const unread =
+                !!btn.querySelector(
+                    '.Y8xri'
+                );
+
+            // skip if not unread
+            if (!unread) continue;
+
+            const username =
+                btn.querySelector('.pTvJc')
+                ?.innerText
+                ?.trim();
+
+            if (!username) continue;
+
+            // DUPLICATE
+            if (
+                scanned.has(username)
+            ) continue;
+
+            scanned.add(username);
+
+            // IMAGE
+            let img = '';
+
+            const imgTag =
+                btn.querySelector('img');
+
+            if (imgTag) {
+
+                img =
+                    imgTag.currentSrc ||
+                    imgTag.src ||
+                    '';
+
+            }
+
+            // LAST MESSAGE
+            const lastMsg =
+                btn.querySelector(
+                    '.FZe6i'
+                )
+                ?.innerText
+                ?.trim() || '';
+
+            console.log(
+                'UNREAD FOUND:',
+                username
+            );
+
+            // SAVE
+            await saveUser({
+
+                suername:
+                    username,
+
+                img:
+                    img,
+
+                lastMsg:
+                    lastMsg,
+
+                unread:
+                    true,
+
+                msgLvl:
+                    0,
+
+                created:
+                    Date.now()
+
+            });
+
+        }
+
+    }
+
+    // =========================
+    // FORCE SCAN
+    // =========================
+
+    async function forceScrollScan() {
+
+        let lastHeight = 0;
+        let stopCount = 0;
+
+        while (true) {
+
+            // SCRAPE BEFORE SCROLL
+            await scrapeVisible();
+
+            // FORCE SCROLL
+            panel.scrollTop += 500;
+
+            // WAIT RENDER
+            await wait(2000);
+
+            // SCRAPE AGAIN
+            await scrapeVisible();
+
+            // END CHECK
+            if (
+                panel.scrollTop === lastHeight
+            ) {
+
+                stopCount++;
+
+            } else {
+
+                stopCount = 0;
+                lastHeight =
+                    panel.scrollTop;
+
+            }
+
+            console.log({
+                scrollTop:
+                    panel.scrollTop,
+                scanned:
+                    scanned.size
+            });
+
+            // STOP
+            if (stopCount >= 3) {
+
+                break;
+
+            }
+
+        }
+
+    }
+
+    // =========================
+    // START
+    // =========================
+
+    await forceScrollScan();
+
+    // FINAL SCRAPE
+    await scrapeVisible();
+
+    console.log({
+        totalUnread:
+            scanned.size
+    });
 
     console.log(
-      'SCAN DONE'
+        'SCAN COMPLETE'
     );
 
-  }
+    // =========================
+    // CALLBACK
+    // =========================
 
+    if (
+        typeof callback === 'function'
+    ) {
 
-  // =========================
-  // START SCROLL
-  // =========================
+        await callback();
 
-  await autoScroll();
-
-
-  // =========================
-  // CALLBACK
-  // =========================
-
-  if (
-    typeof callback === 'function'
-  ) {
-
-    await callback();
-
-  }
+    }
 
 }
-
-
+/* ======================================= [E] **** [E] ======================================= */
 
  
-
+/* ======================================= [S] **** [S] ======================================= */
+// OPEN MSG
+/*==============================================================================================*/
 async function openMsg(callback = null) {
 
   // =========================
@@ -1841,8 +2084,20 @@ async function openMsg(callback = null) {
   // OPENED USERS
   // =========================
 
-  const openedUsers =
-    new Set();
+  const openedUsers = new Set();
+
+
+  // =========================
+  // SCROLL CONTAINER
+  // =========================
+
+  function getScrollContainer() {
+
+    return document.querySelector(
+      '[data-testid="conversation-list"], .GzjsW, .x1lliihq'
+    ) || document.scrollingElement || document.body;
+
+  }
 
 
   // =========================
@@ -1874,12 +2129,8 @@ async function openMsg(callback = null) {
       if (!username) return;
 
       // SKIP OPENED
-      if (
-        openedUsers.has(username)
-      ) {
-
+      if (openedUsers.has(username)) {
         return;
-
       }
 
       buttons.push({
@@ -1895,13 +2146,82 @@ async function openMsg(callback = null) {
 
 
   // =========================
+  // AUTO SCROLL
+  // =========================
+
+  async function scrollForUnread() {
+
+    const container =
+      getScrollContainer();
+
+    let lastScrollTop = -1;
+    let sameCount = 0;
+
+    while (true) {
+
+      const unread =
+        getUnreadButtons();
+
+      // NAA NA UNREAD
+      if (unread.length > 0) {
+        return unread;
+      }
+
+      // SCROLL DOWN
+      container.scrollTop += 800;
+
+      // FALLBACK
+      window.scrollBy(0, 800);
+
+      await wait(1200);
+
+      // CHECK END
+      if (
+        container.scrollTop === lastScrollTop
+      ) {
+
+        sameCount++;
+
+      } else {
+
+        sameCount = 0;
+
+      }
+
+      lastScrollTop =
+        container.scrollTop;
+
+      // END LIST
+      if (sameCount >= 3) {
+        return [];
+      }
+
+    }
+
+  }
+
+
+  // =========================
   // LOOP
   // =========================
 
   while (true) {
 
-    const unreadButtons =
+    let unreadButtons =
       getUnreadButtons();
+
+    // WALAY NAKIT-AN
+    // TRY SCROLL
+    if (!unreadButtons.length) {
+
+      console.log(
+        'SCROLLING FOR MORE UNREAD...'
+      );
+
+      unreadButtons =
+        await scrollForUnread();
+
+    }
 
     console.log(
       'UNREAD:',
@@ -1939,23 +2259,28 @@ async function openMsg(callback = null) {
       username
     );
 
+    activeUsername = username;
 
-    activeUsername = username
 
     // =========================
     // OPEN MESSAGE
     // =========================
 
+    btn.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    await wait(800);
+
     btn.click();
 
     // WAIT UI OPEN
-    await wait(1500);
+    await wait(1800);
 
 
     // =========================
-    // RUN CALLBACK
-    // IMPORTANT:
-    // THIS WILL FULLY WAIT
+    // CALLBACK
     // =========================
 
     if (
@@ -1967,7 +2292,6 @@ async function openMsg(callback = null) {
         username
       );
 
-      // VERY IMPORTANT
       await Promise.resolve(
         callback(btn)
       );
@@ -1981,10 +2305,10 @@ async function openMsg(callback = null) {
 
 
     // =========================
-    // EXTRA SAFETY WAIT
+    // EXTRA WAIT
     // =========================
 
-    await wait(500);
+    await wait(700);
 
 
     // =========================
@@ -2009,7 +2333,7 @@ async function openMsg(callback = null) {
     }
 
     // WAIT CLOSE
-    await wait(1200);
+    await wait(1500);
 
   }
 
@@ -2023,15 +2347,13 @@ async function openMsg(callback = null) {
   );
 
 }
-
-
- 
-
+/* ======================================= [E] **** [E] ======================================= */
 
  
 
- 
-
+/* ======================================= [S] **** [S] ======================================= */
+// SENT MESSAGE
+/*==============================================================================================*/
 async function setMessage(message = "") {
 
   const textarea = document.querySelector('textarea.xXTjk');
@@ -2059,10 +2381,12 @@ async function setMessage(message = "") {
 
   return true;
 }
+/* ======================================= [E] **** [E] ======================================= */
 
 
-
- 
+/* ======================================= [S] **** [S] ======================================= */
+// GENERATE IMAGE
+/*==============================================================================================*/
 function imgGen(username, img, userx) {
   return new Promise((resolve) => {
 
@@ -2156,8 +2480,12 @@ function imgGen(username, img, userx) {
 
   });
 }
-
+/* ======================================= [E] **** [E] ======================================= */
  
+
+/* ======================================= [S] **** [S] ======================================= */
+// SENT IMAGE TO MESSAGE BOX
+/*==============================================================================================*/
 async function sentBasesixfour(base64) {
   function base64ToBlob(base64) {
     const parts = base64.split(',');
@@ -2207,11 +2535,12 @@ async function sentBasesixfour(base64) {
 
   return true;
 }
- 
+/* ======================================= [E] **** [E] ======================================= */
 
 
-// ==================== Helpers ====================
-
+/* ======================================= [S] **** [S] ======================================= */
+// HELPERS
+/*==============================================================================================*/
 function wait(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
@@ -2248,16 +2577,16 @@ function waitForElement(selector, root, timeout) {
     }, timeout);
   });
 }
+/* ======================================= [E] **** [E] ======================================= */
 
 
-
-
-// 
-
-// =========================
-// OPEN DB
-// =========================
-
+/* ======================================= [S] **** [S] ======================================= */
+// INDEX DB 
+/*==============================================================================================*/
+ 
+/* ==========================[*] * [*]========================== */
+/* OPEN DB */ 
+/* ==========================[*] * [*]========================== */
 function openTumblrDB() {
 
   return new Promise((resolve, reject) => {
@@ -2286,11 +2615,10 @@ function openTumblrDB() {
 
 }
 
- 
-// =========================
-// GET USER
-// =========================
 
+/* ==========================[*] * [*]========================== */
+/* GET USER */ 
+/* ==========================[*] * [*]========================== */
 async function getUser(username) {
 
   const db = await openTumblrDB();
@@ -2324,16 +2652,11 @@ async function getUser(username) {
 // =========================
 // UPDATE USER
 // =========================
-
-
 async function updateUser(username, updates = {}) {
 
   if (!username) {
-
     console.error("INVALID USERNAME:", username);
-
     return false;
-
   }
 
   const db = await openTumblrDB();
@@ -2341,7 +2664,6 @@ async function updateUser(username, updates = {}) {
   return new Promise((resolve, reject) => {
 
     const tx = db.transaction('users', 'readwrite');
-
     const store = tx.objectStore('users');
 
     const getReq = store.get(username);
@@ -2351,12 +2673,9 @@ async function updateUser(username, updates = {}) {
       const user = getReq.result;
 
       if (!user) {
-
         console.log('USER NOT FOUND');
-
         resolve(false);
         return;
-
       }
 
       const updatedUser = {
@@ -2367,31 +2686,32 @@ async function updateUser(username, updates = {}) {
       const updateReq = store.put(updatedUser);
 
       updateReq.onsuccess = function () {
-
-        console.log('UPDATED:', updatedUser);
-
-        resolve(updatedUser);
-
+        console.log("UPDATED:", updatedUser);
       };
 
       updateReq.onerror = function () {
-
         reject(updateReq.error);
-
       };
 
     };
 
     getReq.onerror = function () {
-
       reject(getReq.error);
+    };
 
+    // IMPORTANT
+    tx.oncomplete = function () {
+      resolve(true);
+    };
+
+    tx.onerror = function () {
+      reject(tx.error);
     };
 
   });
 
 }
-
+/* ======================================= [E] **** [E] ======================================= */
 
 
 
@@ -2545,13 +2865,24 @@ async function checkBeforeSent() {
         );
   } 
 
+// alert(activeUsername)
+
 
   console.log(thedataholder);
   console.log("==========================");
 
   let msgLvl = Number(thedataholder?.msgLvl || 0);
+console.log("DATA:", thedataholder);
+console.log("LEVEL:", msgLvl);
 
-  if (!msgsentonce) {
+console.log("RAW:", thedataholder);
+console.log("TYPE:", typeof thedataholder?.msgLvl);
+console.log("FINAL:", msgLvl);
+
+  if (msgsentonce) {
+      return
+  }
+
     switch (msgLvl) {
 
       case 0:
@@ -2625,14 +2956,13 @@ async function checkBeforeSent() {
       break;
   
     }
-  }
 
 
 }
 
 async function othertest(){
 
-alert("all donw")
+// alert("all donw")
 
   await new Promise(resolve =>
     setTimeout(resolve, 3000)
@@ -2655,7 +2985,6 @@ runLocalLogic("functest");
 
 const keepOpen = keepConversationOpen();
 
-
 // START BUTTON
 document.querySelector('#tsStartBtn')?.addEventListener('click', () => {
 
@@ -2665,6 +2994,13 @@ document.querySelector('#tsStartBtn')?.addEventListener('click', () => {
     $("#menuBtn").click()
     $("#tsStartBtn").text(`⏯`)
     setLocalLogic("autoRunnerMsg", true);
+
+
+    $("[mainBox]").hide()
+    offRefreshStatus()
+    breakerStop();
+    fullStop();
+
   
   
     setTimeout(() => {
@@ -2674,7 +3010,7 @@ document.querySelector('#tsStartBtn')?.addEventListener('click', () => {
       
    
       
-        console.log('ALL DONE');
+        // console.log('ALL DONE');
   
         await openMsg(async function (btn) {
    
