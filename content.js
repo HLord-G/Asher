@@ -2048,326 +2048,220 @@ async function openMsg(callback = null) {
   // =========================
   // WAIT
   // =========================
-
-  function wait(ms = 1000) {
-
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
-
+  function wait(ms = 800) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
-
 
   // =========================
   // WAIT ELEMENT
   // =========================
-
-  function waitForElement(
-    selector,
-    timeout = 10000
-  ) {
-
-    return new Promise((resolve) => {
-
+  function waitForElement(selector, timeout = 10000) {
+    return new Promise(resolve => {
       const start = Date.now();
 
       const timer = setInterval(() => {
-
-        const el =
-          document.querySelector(selector);
+        const el = document.querySelector(selector);
 
         if (el) {
-
           clearInterval(timer);
-
           resolve(el);
-
           return;
-
         }
 
-        if (
-          Date.now() - start > timeout
-        ) {
-
+        if (Date.now() - start > timeout) {
           clearInterval(timer);
-
           resolve(null);
-
         }
-
       }, 50);
-
     });
-
   }
 
-
   // =========================
-  // OPENED USERS
+  // TRACK OPENED USERS
   // =========================
-
   const openedUsers = new Set();
 
-
   // =========================
-  // SCROLL CONTAINER
+  // SMART SCROLL CONTAINER
   // =========================
-
   function getScrollContainer() {
 
-    return document.querySelector(
-      '[data-testid="conversation-list"], .GzjsW, .x1lliihq'
-    ) || document.scrollingElement || document.body;
-
+    const exukd = document.querySelector('.EXUkD');
+  
+    if (exukd) {
+      const isScrollable = exukd.scrollHeight > exukd.clientHeight;
+  
+      console.log("EXUkD CHECK:", {
+        scrollHeight: exukd.scrollHeight,
+        clientHeight: exukd.clientHeight,
+        scrollable: isScrollable
+      });
+  
+      if (isScrollable) {
+        return exukd;
+      }
+    }
+  
+    // fallback
+    console.log("USING BODY SCROLL");
+  
+    return document.scrollingElement || document.body;
   }
-
-
   // =========================
-  // GET UNREAD
+  // GET UNREAD BUTTONS
   // =========================
-
   function getUnreadButtons() {
 
-    const unreadEls =
-      document.querySelectorAll(
-        '.uX3_z.lx_bn .Y8xri'
-      );
-
+    const unreadEls = document.querySelectorAll('.uX3_z.lx_bn .Y8xri');
     const buttons = [];
 
     unreadEls.forEach(el => {
 
-      const btn = el.closest(
-        'button[aria-label="Conversation"]'
-      );
-
+      const btn = el.closest('button[aria-label="Conversation"]');
       if (!btn) return;
 
       const username =
-        btn.querySelector('.pTvJc')
-        ?.textContent
-        ?.trim();
+        btn.querySelector('.pTvJc')?.textContent?.trim();
 
       if (!username) return;
 
-      // SKIP OPENED
-      if (openedUsers.has(username)) {
-        return;
-      }
+      if (openedUsers.has(username)) return;
 
-      buttons.push({
-        btn,
-        username
-      });
+      buttons.push({ btn, username });
 
     });
 
     return buttons;
-
   }
 
-
   // =========================
-  // AUTO SCROLL
+  // SMART AUTO SCROLL
   // =========================
-
   async function scrollForUnread() {
 
-    const container =
-      getScrollContainer();
-
-    let lastScrollTop = -1;
-    let sameCount = 0;
-
+    const container = getScrollContainer();
+  
+    // ❗ STRICT CHECK
+    const isEXUkD = container.classList?.contains("EXUkD");
+  
+    if (!isEXUkD) {
+      console.log("❌ EXUkD not scrollable → STOP");
+      return [];
+    }
+  
+    let lastTop = -1;
+    let stableCount = 0;
+  
     while (true) {
-
-      const unread =
-        getUnreadButtons();
-
-      // NAA NA UNREAD
+  
+      const unread = getUnreadButtons();
+  
       if (unread.length > 0) {
         return unread;
       }
-
-      // SCROLL DOWN
-      container.scrollTop += 800;
-
-      // FALLBACK
-      window.scrollBy(0, 800);
-
+  
+      // ✅ ONLY scroll EXUkD
+      container.scrollTop += 900;
+  
+      console.log("SCROLLING EXUkD...", {
+        top: container.scrollTop
+      });
+  
       await wait(1200);
-
-      // CHECK END
-      if (
-        container.scrollTop === lastScrollTop
-      ) {
-
-        sameCount++;
-
+  
+      if (container.scrollTop === lastTop) {
+        stableCount++;
       } else {
-
-        sameCount = 0;
-
+        stableCount = 0;
       }
-
-      lastScrollTop =
-        container.scrollTop;
-
-      // END LIST
-      if (sameCount >= 3) {
+  
+      lastTop = container.scrollTop;
+  
+      if (stableCount >= 3) {
+        console.log("END EXUkD");
         return [];
       }
-
     }
-
   }
 
-
   // =========================
-  // LOOP
+  // MAIN LOOP
   // =========================
-
   while (true) {
 
-    let unreadButtons =
-      getUnreadButtons();
+    let unreadButtons = getUnreadButtons();
 
-    // WALAY NAKIT-AN
-    // TRY SCROLL
+    // walay nakita → scroll
     if (!unreadButtons.length) {
 
-      console.log(
-        'SCROLLING FOR MORE UNREAD...'
-      );
-
-      unreadButtons =
-        await scrollForUnread();
+      console.log("NO UNREAD VISIBLE → SCROLLING...");
+      unreadButtons = await scrollForUnread();
 
     }
 
-    console.log(
-      'UNREAD:',
-      unreadButtons.length
-    );
+    console.log("UNREAD FOUND:", unreadButtons.length);
 
-    // STOP
+    // stop na
     if (!unreadButtons.length) {
-
-      console.log(
-        'NO MORE UNREAD'
-      );
-
+      console.log("NO MORE UNREAD 🔚");
       break;
-
     }
 
-    // FIRST ITEM
-    const item =
-      unreadButtons[0];
-
+    const item = unreadButtons[0];
     if (!item) break;
 
-    const btn =
-      item.btn;
+    const { btn, username } = item;
 
-    const username =
-      item.username;
-
-    // MARK OPENED
     openedUsers.add(username);
-
-    console.log(
-      'OPENING:',
-      username
-    );
-
     activeUsername = username;
 
+    console.log("OPENING:", username);
 
-    // =========================
-    // OPEN MESSAGE
-    // =========================
-
+    // scroll to view
     btn.scrollIntoView({
       behavior: 'smooth',
       block: 'center'
     });
 
-    await wait(800);
+    await wait(600);
 
+    // click open
     btn.click();
 
-    // WAIT UI OPEN
-    await wait(1800);
-
+    // wait open UI
+    await wait(1600);
 
     // =========================
     // CALLBACK
     // =========================
+    if (typeof callback === 'function') {
 
-    if (
-      typeof callback === 'function'
-    ) {
+      console.log("RUN CALLBACK:", username);
 
-      console.log(
-        'WAITING CALLBACK:',
-        username
-      );
+      await Promise.resolve(callback(btn));
 
-      await Promise.resolve(
-        callback(btn)
-      );
-
-      console.log(
-        'CALLBACK FINISHED:',
-        username
-      );
-
+      console.log("CALLBACK DONE:", username);
     }
 
+    await wait(600);
 
     // =========================
-    // EXTRA WAIT
+    // CLOSE MESSAGE
     // =========================
-
-    await wait(700);
-
-
-    // =========================
-    // CLOSE
-    // =========================
-
-    const closeBtn =
-      await waitForElement(
-        'button[aria-label="Close"]',
-        5000
-      );
+    const closeBtn = await waitForElement(
+      'button[aria-label="Close"]',
+      5000
+    );
 
     if (closeBtn) {
-
       closeBtn.click();
-
-      console.log(
-        'CLOSED:',
-        username
-      );
-
+      console.log("CLOSED:", username);
     }
 
-    // WAIT CLOSE
-    await wait(1500);
-
+    await wait(1200);
   }
 
-
-  // =========================
-  // DONE
-  // =========================
-
-  console.log(
-    'ALL MESSAGE DONE'
-  );
+  console.log("ALL DONE ✅");
 
 }
 /* ======================================= [E] **** [E] ======================================= */
