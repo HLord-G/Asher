@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Asher",
-    "version": "5.6",
+    "version": "6.0",
     "description": "Simple Chrome extension with content script",
     "author": "Lordskey",
   
@@ -32,7 +32,7 @@
     "content_scripts": [
       {
         "matches": [
-          "https://www.tumblr.com/*/*",
+          "https://www.tumblr.com/*",
           "http://localhost/*",
           "http://127.0.0.1/*"
         ],

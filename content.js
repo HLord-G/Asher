@@ -42,7 +42,7 @@ let debounceTimer     = null;
 
 // Countdown
 let countdownInterval = null;
-let version = "0.2"
+let version = "6.0"
 
 
 
@@ -101,78 +101,84 @@ const countdownWorker = new Worker(URL.createObjectURL(countdownWorkerBlob));
 // ========================
 // UI INJECT
 // ========================
-$("body").append(`
-  <div style="position:fixed;bottom:20%;right:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
-
-    <div mainBox style="
-      z-index:9999;
-      width:100%;
-      display:flex;
-      justify-content: space-between;
-      flex-flow:row;
-      align-items: end;
-    ">
-      <div style="background:#10002bff; border: 1px solid white; border-bottom: none; padding:10px; color:#fff;">
-        <span time_hr>00</span>:<span time_min>00</span>:<span time_sec>00</span>
-      </div>
-
-      <div>
-          <div id="" style="padding:8px; font-size:9px; background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
-         V ${version}
-          </div>
-      </div>
-    </div>
-
-    <div mainBox style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:0px 0px 12px 12px;font-family:sans-serif;color:#fff;">
-
-      <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:#c77dffff;">Break</label><br>
-        <select mints style="width:100%;padding:5px;background:#240046ff;color:#fff;border:none;border-radius:6px;margin-top:5px;">
-          <option value="hrs">hrs</option>
-          <option value="mins">mins</option>
-          <option value="sec">sec</option>
-        </select>
-        <input type="number" time placeholder="Enter value"
-          style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
-      </div>
-
-      <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:#c77dffff;">Post Count</label>
-        <div style="display:flex;gap:5px;margin-top:5px;">
-          <input type="number" manypost placeholder="Total"
-            style="width:50%;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
-          <input type="number" manypost_remaining placeholder="Remaining" disabled
-            style="width:50%;padding:5px;background:#240046ff;color:#a0a0a0;border:none;border-radius:6px;cursor:not-allowed;pointer-events:none;">
+function getfullLink() {
+  return window.location.href;
+}
+if(getfullLink() == "https://www.tumblr.com/explore/trending"){
+  $("body").append(`
+    <div style="position:fixed;bottom:20%;left:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
+  
+      <div mainBox style="
+        z-index:9999;
+        width:100%;
+        display:flex;
+        justify-content: space-between;
+        flex-flow:row;
+        align-items: end;
+      ">
+        <div style="background:#10002bff; border: 1px solid white; border-bottom: none; padding:10px; color:#fff;">
+          <span time_hr>00</span>:<span time_min>00</span>:<span time_sec>00</span>
+        </div>
+  
+        <div>
+            <div id="" style="padding:8px; font-size:9px; background:#7b2cbfff;color:#fff;border:none;cursor:pointer;">
+           V ${version}
+            </div>
         </div>
       </div>
-
-      <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:#c77dffff;">Loop</label><br>
-        <input type="number" loops placeholder="How many Loops"
-          style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+  
+      <div mainBox style="width:210px;background:#10002bff;padding:15px;border:1px solid white;border-radius:0px 0px 12px 12px;font-family:sans-serif;color:#fff;">
+  
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px;color:#c77dffff;">Break</label><br>
+          <select mints style="width:100%;padding:5px;background:#240046ff;color:#fff;border:none;border-radius:6px;margin-top:5px;">
+            <option value="hrs">hrs</option>
+            <option value="mins">mins</option>
+            <option value="sec">sec</option>
+          </select>
+          <input type="number" time placeholder="Enter value"
+            style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+        </div>
+  
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px;color:#c77dffff;">Post Count</label>
+          <div style="display:flex;gap:5px;margin-top:5px;">
+            <input type="number" manypost placeholder="Total"
+              style="width:50%;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+            <input type="number" manypost_remaining placeholder="Remaining" disabled
+              style="width:50%;padding:5px;background:#240046ff;color:#a0a0a0;border:none;border-radius:6px;cursor:not-allowed;pointer-events:none;">
+          </div>
+        </div>
+  
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px;color:#c77dffff;">Loop</label><br>
+          <input type="number" loops placeholder="How many Loops"
+            style="width:100%;margin-top:5px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;">
+        </div>
+  
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px;color:#c77dffff;">Comment</label><br>
+          <textarea comments placeholder="Write comment..."
+            style="width:100%;margin-top:5px;height:130px;font-size:13px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;resize:vertical;"></textarea>
+        </div>
+  
+        <div style="margin-bottom:10px;font-size:12px;">
+          <span style="color:#c77dffff;">Refresh</span>
+          <input refresh_status type="checkbox" style="margin-left:5px;">
+        </div>
+  
+        <div style="width:100%; padding:10px;display:flex;justify-content:center;flex-direction:row;align-items:center;gap:5px;">
+          <button starts style="flex:1;padding:8px;background:#7b2cbf;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">START</button>
+          <button stopoperation style="flex:1; width:40%;padding:8px;background:red;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">STOP</button>
+        </div>
+  
       </div>
-
-      <div style="margin-bottom:10px;">
-        <label style="font-size:12px;color:#c77dffff;">Comment</label><br>
-        <textarea comments placeholder="Write comment..."
-          style="width:100%;margin-top:5px;height:130px;font-size:13px;padding:5px;background:#3c096cff;color:#fff;border:none;border-radius:6px;resize:vertical;"></textarea>
-      </div>
-
-      <div style="margin-bottom:10px;font-size:12px;">
-        <span style="color:#c77dffff;">Refresh</span>
-        <input refresh_status type="checkbox" style="margin-left:5px;">
-      </div>
-
-      <div style="width:100%; padding:10px;display:flex;justify-content:center;flex-direction:row;align-items:center;gap:5px;">
-        <button starts style="flex:1;padding:8px;background:#7b2cbf;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">START</button>
-        <button stopoperation style="flex:1; width:40%;padding:8px;background:red;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;">STOP</button>
-      </div>
-
+  
+      <button openthis style="position:fixed;left:-400%;">open</button>
     </div>
-
-    <button openthis style="position:fixed;left:-400%;">open</button>
-  </div>
-`);
+  `);
+  
+}
 
 $(document).on("click", "#menuBtn", () => $("[mainBox]").toggle());
 
@@ -1262,18 +1268,28 @@ function injectUI() {
   
 
 
-  target.prepend(purpleBtn);
-  target.prepend(userx);
-
-  wrapper.appendChild(startBtn);
-  wrapper.appendChild(stopBtn);
-  wrapper.appendChild(timerr);
-
   
-  target.prepend(wrapper);
-  target.prepend(thirdMsg);
-  target.prepend(secondMsg);
-  target.prepend(firstMsg);
+
+  if(getfullLink() == "https://www.tumblr.com/explore/trending"){
+    target.prepend(purpleBtn);
+  }
+
+
+  if(getfullLink() == "https://www.tumblr.com/dashboard"){
+    target.prepend(userx);
+
+    wrapper.appendChild(startBtn);
+    wrapper.appendChild(stopBtn);
+    wrapper.appendChild(timerr);
+
+    
+    target.prepend(wrapper);
+    target.prepend(thirdMsg);
+    target.prepend(secondMsg);
+    target.prepend(firstMsg);
+  }
+
+
 
 
 
@@ -3050,3 +3066,4 @@ document.querySelector('#tsStopBtn')?.addEventListener('click', () => {
 });
 
 
+// $("[mainBox]").hide()
