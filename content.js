@@ -122,7 +122,7 @@ purpleBtn.style.cssText = `
 `;
 
 const url = getfullLink();
-if(url.includes("tagged") || url.includes("explore")){
+if(url.includes("tagged") || url.includes("explore") || url.includes("search")){
     $("body").append(`
       <div style="position:fixed;bottom:20%;left:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
     
