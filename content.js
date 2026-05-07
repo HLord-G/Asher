@@ -36,7 +36,7 @@ let debounceTimer     = null;
 
 // Countdown
 let countdownInterval = null;
-let version = "6.5"
+let version = "6.6"
 
 
 
@@ -3045,15 +3045,15 @@ document.querySelector('#tsStartBtn')?.addEventListener('click', () => {
   if (!startonce) {
     startonce = true
     keepOpen.start();
-    $("#menuBtn").click()
+    // $("#menuBtn").click()
     $("#tsStartBtn").text(`⏯`)
     setLocalLogic("autoRunnerMsg", true);
 
 
-    $("[mainBox]").hide()
-    offRefreshStatus()
-    breakerStop();
-    fullStop();
+    // $("[mainBox]").hide()
+    // offRefreshStatus()
+    // breakerStop();
+    // fullStop();
 
   
   
