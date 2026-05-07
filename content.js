@@ -549,21 +549,39 @@ function startRestrictObserver() {
 // ACTION CONTROL
 // ========================
 function triggerNext(reason = "") {
-  if (isProceeding || isWorking) return;
 
-  if (clickPerActionTarget > 0 && clickPerActionCount >= clickPerActionTarget) {
-    console.log(`✅ All ${clickPerActionTarget} posts done for this rep.`);
+  // FIRST check completion
+  if (
+    clickPerActionTarget > 0 &&
+    clickPerActionCount >= clickPerActionTarget
+  ) {
+
+    console.log(
+      `✅ All ${clickPerActionTarget} posts done for this rep.`
+    );
+
     isProceeding = false;
+    isWorking    = false;
     clickonce    = false;
+
     onClickPerActionDone();
-    breakerRunner();
+
+    setTimeout(() => {
+
+      breakerRunner();
+
+    }, 300);
+
     return;
   }
 
+  // KEEP YOUR ORIGINAL LOGIC
+  if (isProceeding || isWorking) return;
   isProceeding = true;
-  clickonce    = false;
-
-  console.log(`➡️ [${reason}] post ${clickPerActionCount + 1}/${clickPerActionTarget}`);
+  clickonce = false;
+  console.log(
+    `➡️ [${reason}] post ${clickPerActionCount + 1}/${clickPerActionTarget}`
+  );
 
   setTimeout(() => {
     if (clickPerActionCount >= clickPerActionTarget) {
@@ -571,9 +589,11 @@ function triggerNext(reason = "") {
       return;
     }
     isProceeding = false;
-    isWorking    = true;
+    isWorking = true;
     $("[openthis]").click();
+
   }, 2000);
+
 }
 
 function onClickPerActionDone() {
