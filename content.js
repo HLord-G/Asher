@@ -36,7 +36,7 @@ let debounceTimer     = null;
 
 // Countdown
 let countdownInterval = null;
-let version = "6.6"
+let version = "6.7"
 
 
 
@@ -97,7 +97,7 @@ function getfullLink() {
   return window.location.href;
 }
 
-
+const url = getfullLink();
 
 // ========================
 // UI INJECT
@@ -121,7 +121,7 @@ purpleBtn.style.cssText = `
   width:90%;
 `;
 
-const url = getfullLink();
+
 if(url.includes("tagged") || url.includes("explore") || url.includes("search")){
     $("body").append(`
       <div style="position:fixed;bottom:20%;left:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
@@ -3023,7 +3023,7 @@ async function othertest(){
 
 
 
-if(getfullLink() == "https://www.tumblr.com/dashboard"){
+if(url.includes("dashboard")){
   injectUI();
   persistentInput("userx");
   persistentInput("timerr");
