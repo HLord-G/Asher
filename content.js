@@ -121,8 +121,8 @@ purpleBtn.style.cssText = `
   width:90%;
 `;
 
-
-if(getfullLink() == "https://www.tumblr.com/explore/trending"){
+const url = getfullLink();
+if(url.includes("tagged") || url.includes("explore")){
     $("body").append(`
       <div style="position:fixed;bottom:20%;left:0%;padding:10px;border-radius:8px;z-index:9999;display:flex;flex-flow:column;align-items:end;">
     
@@ -1319,11 +1319,8 @@ function injectUI() {
 
 
   
-function getfullLink() {
-    return window.location.href;
-}
+ 
 
-  target.prepend(purpleBtn);
   target.prepend(userx);
 
   wrapper.appendChild(startBtn);
@@ -3026,15 +3023,17 @@ async function othertest(){
 
 
 
-
-injectUI();
+if(getfullLink() == "https://www.tumblr.com/dashboard"){
+  injectUI();
+  persistentInput("userx");
+  persistentInput("timerr");
+  persistentInput("firstmsg");
+  persistentInput("secondmsg");
+  persistentInput("thirdmsg");
+  runLocalLogic("functest");
+}
 // tsAutoStart(); // ✅ I-call after injectUI
-persistentInput("userx");
-persistentInput("timerr");
-persistentInput("firstmsg");
-persistentInput("secondmsg");
-persistentInput("thirdmsg");
-runLocalLogic("functest");
+
 
 
 
