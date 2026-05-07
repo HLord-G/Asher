@@ -1,9 +1,3 @@
- 
-
-
-
-
-
 // ============================================================
 // OWL BOT - OPTIMIZED (Background Tab Fix)
 // ============================================================
@@ -204,8 +198,7 @@ if(getfullLink() == "https://www.tumblr.com/explore/trending"){
       </div>
     `);
 
-
-  
+ 
     target_container.prepend(purpleBtn);
 }
 
@@ -975,6 +968,8 @@ function getRandomComment(text) {
 
 
 
+
+
 // 00 MENU
 //======================================================================================================================================================= Messages Area
 
@@ -1204,6 +1199,24 @@ function injectUI() {
   `;
 
 
+
+
+  const purpleBtn = document.createElement('button');
+  purpleBtn.id = 'menuBtn';
+  purpleBtn.innerText = 'Bot Setup';
+  purpleBtn.style.cssText = `
+    padding:10px 12px;
+    margin-bottom:10px;
+    cursor:pointer;
+    background:#191919;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    font-size:12px;
+    width:90%;
+  `;
+
   
   const userx = document.createElement('input');
   userx.id = 'userx';
@@ -1280,9 +1293,11 @@ function injectUI() {
 
 
   
+function getfullLink() {
+    return window.location.href;
+}
 
-
-
+  target.prepend(purpleBtn);
   target.prepend(userx);
 
   wrapper.appendChild(startBtn);
