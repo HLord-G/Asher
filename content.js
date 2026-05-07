@@ -1129,17 +1129,17 @@ window.addEventListener("load", async () => {
 setLocalLogic("autoRunnerMsg", async function () {
 
 
-  $("[mainBox]").hide()
+  // $("[mainBox]").hide()
 
-  offRefreshStatus()
+  // offRefreshStatus()
 
   setTimeout(() => {
     $("#tsStartBtn").click()
   }, 4000);
 
 
-  breakerStop();
-  fullStop();
+  // breakerStop();
+  // fullStop();
 
   
 });
