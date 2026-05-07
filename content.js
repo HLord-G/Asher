@@ -36,7 +36,7 @@ let debounceTimer     = null;
 
 // Countdown
 let countdownInterval = null;
-let version = "6.4"
+let version = "6.5"
 
 
 
@@ -764,39 +764,45 @@ function breakerRunner() {
   const isStopped   = localStorage.getItem(BREAKER_STOP) === "true";
 
   if (!config || isStopped || currentLoop <= 0) {
-    console.log(isStopped ? "Breaker stopped." : "Breaker done / no config.");
-    $('[loops]').val("");
+    console.log("Breaker stopped or done.");
     stopCountdown();
     setStartBtn("idle");
-    updateLoopDisplay(0, 0);
     breakerClear();
     return;
   }
 
   console.log(`⏳ Break ${config.delay / 1000}s | loops left: ${currentLoop}`);
+
   updateLoopDisplay(currentLoop, config.total || currentLoop);
   setStartBtn("break");
   startCountdown(config.delay);
 
   breakerTimeout = setTimeout(() => {
+
     const nextLoop = currentLoop - 1;
+
     $('[loops]').val(nextLoop);
+
     localStorage.setItem(BREAKER_STATE, nextLoop);
+
     updateLoopDisplay(nextLoop, config.total || currentLoop);
+
     setTimeout(autoSave, 300);
 
-    breakerTimeout = setTimeout(() => {
-      if (config.refresh) {
-        console.log("🔄 Refreshing page...");
-        setTimeout(() => location.reload(), 1000);
-      } else {
-        if (!sent_once) {
-          sent_once = true;
-          $("[starts]").click();
-          setTimeout(() => { sent_once = false; }, 600);
-        }
-      }
-    }, 1000);
+    if (config.refresh) {
+
+      console.log("🔄 Refreshing page now...");
+      
+      location.reload();
+
+    } else {
+
+      console.log("▶ Restarting without refresh");
+
+      $("[starts]").click();
+
+    }
+
   }, config.delay);
 }
 
