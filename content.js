@@ -36,7 +36,7 @@ let debounceTimer     = null;
 
 // Countdown
 let countdownInterval = null;
-let version = "6.8"
+let version = "6.9"
 
 
 
@@ -452,43 +452,69 @@ function findCommentButton(entry) {
 }
 
 function delayOppner(delaySec) {
+
+  // close old popup first
   $("[owl_clsoe_com]").click();
+
   message = [];
 
   setTimeout(() => {
+
     const entry = owl_data[countSelect];
 
     if (!entry) {
-      isWorking    = false;
-      isProceeding = false;
+
+      console.log("⚠️ No entry found");
+
       clickonce    = false;
+      isProceeding = false;
+      isWorking    = false;
+
       return;
     }
 
     try {
+
       const btn = findCommentButton(entry);
 
-      if (btn) {
-        btn.click();
-        console.log(`✅ Clicked comment button for index ${countSelect}`);
-      } else {
-        isWorking    = false;
-        isProceeding = false;
+      if (!btn) {
+
+        console.log("⚠️ No comment button");
+
         clickonce    = false;
+        isProceeding = false;
+        isWorking    = false;
+
         countSelect++;
-        setTimeout(() => triggerNext("skip"), 1000);
+
+        setTimeout(() => {
+          triggerNext("skip no button");
+        }, 1500);
+
         return;
       }
-    } catch (e) {
-      isWorking    = false;
-      isProceeding = false;
-      clickonce    = false;
+
+      console.log(`✅ Opening comment index ${countSelect}`);
+
+      btn.click();
+
       countSelect++;
-      setTimeout(() => triggerNext("skip"), 1000);
-      return;
+
+    } catch (e) {
+
+      console.log("❌ Open error", e);
+
+      clickonce    = false;
+      isProceeding = false;
+      isWorking    = false;
+
+      countSelect++;
+
+      setTimeout(() => {
+        triggerNext("open error");
+      }, 1500);
     }
 
-    countSelect++;
   }, delaySec * 1000);
 }
 
@@ -550,39 +576,37 @@ function startRestrictObserver() {
 // ========================
 function triggerNext(reason = "") {
 
-  // completed all posts
+  console.log(`➡️ triggerNext: ${reason}`);
+
+  // completed all
   if (
     clickPerActionTarget > 0 &&
     clickPerActionCount >= clickPerActionTarget
   ) {
 
-    console.log(
-      `✅ All ${clickPerActionTarget} posts done for this rep.`
-    );
+    console.log(`✅ Finished all posts`);
 
+    clickonce    = false;
     isProceeding = false;
     isWorking    = false;
-    clickonce    = false;
-
-    onClickPerActionDone();
 
     setTimeout(() => {
 
       breakerRunner();
 
-    }, 300);
+    }, 1000);
 
     return;
   }
 
-  // prevent duplicate triggers
+  // protection
   if (
+    clickonce ||
     isProceeding ||
-    isWorking ||
-    clickonce
+    isWorking
   ) {
 
-    console.log("⛔ trigger blocked");
+    console.log("⛔ Blocked duplicate trigger");
 
     return;
   }
@@ -590,18 +614,19 @@ function triggerNext(reason = "") {
   isProceeding = true;
 
   console.log(
-    `➡️ [${reason}] post ${clickPerActionCount + 1}/${clickPerActionTarget}`
+    `🚀 Starting ${clickPerActionCount + 1}/${clickPerActionTarget}`
   );
 
   setTimeout(() => {
 
-    // safety recheck
+    // double safety
     if (
       clickPerActionCount >= clickPerActionTarget
     ) {
 
       isProceeding = false;
       isWorking    = false;
+      clickonce    = false;
 
       return;
     }
@@ -610,13 +635,11 @@ function triggerNext(reason = "") {
     isWorking    = true;
     clickonce    = true;
 
-    console.log("🚀 opening comment");
-
     $("[openthis]").click();
 
-  }, 2000);
-
+  }, 900);
 }
+
 
 function onClickPerActionDone() {
   // handled by breakerRunner now
@@ -650,27 +673,21 @@ function fullStop() {
 // ========================
 // COMMENT FLOW
 // ========================
-$(document).on("click", "[openthis]", function () {
+$(document)
+.off("click", "[openthis]")
+.on("click", "[openthis]", function () {
 
-  // prevent random trigger
-  if (!isWorking) {
+  // safety block
+  if (!isWorking || !clickonce) {
 
-    console.log("⛔ blocked orphan open");
-
-    return;
-  }
-
-  // already processing
-  if (clickonce === false) {
-
-    console.log("⛔ invalid open state");
+    console.log("⛔ Invalid state open blocked");
 
     return;
   }
 
-  console.log("🚀 Opening comment popup...");
+  console.log("🚀 Opening popup");
 
-  delayOppner(1);
+  delayOppner(2);
 
   startRestrictObserver();
 
@@ -683,123 +700,10 @@ $(document).on("click", "[openthis]", function () {
         // restricted
         if (isRestricted) {
 
-          console.log("🚫 Restricted — skipping");
+          console.log("🚫 Restricted");
 
           $("[owl_clsoe_com]").click();
 
-          if (commentObserver) {
-            commentObserver.disconnect();
-            commentObserver = null;
-          }
-
-          clickonce    = false;
-          isProceeding = false;
-          isWorking    = false;
-
-          setTimeout(() => {
-
-            triggerNext("restricted skip");
-
-          }, 2000);
-
-          return;
-        }
-
-        // comments list
-        const myComments = (
-          $('[comments]').val().match(/\[(.*?)\]/g) || []
-        ).map(x =>
-          x.replace(/[\[\]]/g, '')
-           .trim()
-           .toLowerCase()
-        );
-
-        // duplicate checker
-        const isDuplicate = msg.some(x =>
-          myComments.includes(
-            x.comment.trim().toLowerCase()
-          )
-        );
-
-        if (isDuplicate) {
-
-          console.log("🔄 Duplicate detected");
-
-          $("[owl_clsoe_com]").click();
-
-          if (commentObserver) {
-            commentObserver.disconnect();
-            commentObserver = null;
-          }
-
-          clickonce    = false;
-          isProceeding = false;
-          isWorking    = false;
-
-          setTimeout(() => {
-
-            triggerNext("duplicate skip");
-
-          }, 2000);
-
-          return;
-        }
-
-        // no duplicate
-        console.log("✏️ Typing comment");
-
-        const freshComment =
-          getRandomComment(
-            $('[comments]').val()
-          );
-
-        setTextareaValue(
-          box,
-          freshComment
-        );
-
-        window._sentComments =
-          window._sentComments || [];
-
-        window._sentComments.push(
-          freshComment
-            .trim()
-            .toLowerCase()
-        );
-
-        setTimeout(() => {
-
-          clickPerActionCount++;
-
-          const remaining =
-            clickPerActionTarget -
-            clickPerActionCount;
-
-          $('[manypost_remaining]').val(
-            remaining >= 0
-              ? remaining
-              : 0
-          );
-
-          console.log(
-            `✅ Post ${clickPerActionCount}/${clickPerActionTarget}`
-          );
-
-          // send button
-          if (!sent_once) {
-
-            sent_once = true;
-
-            $("[owl_sent]").click();
-
-            setTimeout(() => {
-
-              sent_once = false;
-
-            }, 600);
-          }
-
-          // cleanup
           if (commentObserver) {
             commentObserver.disconnect();
             commentObserver = null;
@@ -810,17 +714,134 @@ $(document).on("click", "[openthis]", function () {
             restrictObserver = null;
           }
 
-          clickonce    = false;
-          isProceeding = false;
-          isWorking    = false;
+          setTimeout(() => {
 
-          triggerNext("success");
+            clickonce    = false;
+            isProceeding = false;
+            isWorking    = false;
 
-        }, 500);
+            triggerNext("restricted");
+
+          }, 1200);
+
+          return;
+        }
+
+        // duplicate checker
+        const myComments = (
+          $('[comments]').val().match(/\[(.*?)\]/g) || []
+        ).map(x =>
+          x.replace(/[\[\]]/g, '')
+           .trim()
+           .toLowerCase()
+        );
+
+        const isDuplicate = msg.some(x =>
+          myComments.includes(
+            x.comment.trim().toLowerCase()
+          )
+        );
+
+        if (isDuplicate) {
+
+          console.log("🔄 Duplicate found");
+
+          $("[owl_clsoe_com]").click();
+
+          if (commentObserver) {
+            commentObserver.disconnect();
+            commentObserver = null;
+          }
+
+          if (restrictObserver) {
+            restrictObserver.disconnect();
+            restrictObserver = null;
+          }
+
+          setTimeout(() => {
+
+            clickonce    = false;
+            isProceeding = false;
+            isWorking    = false;
+
+            triggerNext("duplicate");
+
+          }, 1200);
+
+          return;
+        }
+
+        // type comment
+        const freshComment =
+          getRandomComment(
+            $('[comments]').val()
+          );
+
+        console.log("✏️ Typing:", freshComment);
+
+        setTextareaValue(
+          box,
+          freshComment
+        );
+
+        setTimeout(() => {
+
+          // send
+          if (!sent_once) {
+
+            sent_once = true;
+
+            $("[owl_sent]").click();
+
+            setTimeout(() => {
+              sent_once = false;
+            }, 1000);
+          }
+
+          clickPerActionCount++;
+
+          const remaining =
+            clickPerActionTarget -
+            clickPerActionCount;
+
+          $('[manypost_remaining]').val(
+            remaining >= 0 ? remaining : 0
+          );
+
+          console.log(
+            `✅ Success ${clickPerActionCount}/${clickPerActionTarget}`
+          );
+
+          // cleanup observers
+          if (commentObserver) {
+            commentObserver.disconnect();
+            commentObserver = null;
+          }
+
+          if (restrictObserver) {
+            restrictObserver.disconnect();
+            restrictObserver = null;
+          }
+
+          // close popup first
+          $("[owl_clsoe_com]").click();
+
+          // IMPORTANT DELAY
+          setTimeout(() => {
+
+            clickonce    = false;
+            isProceeding = false;
+            isWorking    = false;
+
+            triggerNext("success");
+
+          }, 1500);
+
+        }, 1000);
 
       }, () => {
 
-        console.log("⌛ Message timeout");
+        console.log("⌛ Timeout");
 
         $("[owl_clsoe_com]").click();
 
@@ -834,15 +855,15 @@ $(document).on("click", "[openthis]", function () {
           restrictObserver = null;
         }
 
-        clickonce    = false;
-        isProceeding = false;
-        isWorking    = false;
-
         setTimeout(() => {
 
-          triggerNext("message timeout skip");
+          clickonce    = false;
+          isProceeding = false;
+          isWorking    = false;
 
-        }, 2000);
+          triggerNext("timeout");
+
+        }, 1500);
 
       });
 
@@ -850,10 +871,7 @@ $(document).on("click", "[openthis]", function () {
 
   } catch (e) {
 
-    console.error(
-      "❌ Error in comment flow:",
-      e
-    );
+    console.log("❌ FLOW ERROR", e);
 
     clickonce    = false;
     isProceeding = false;
