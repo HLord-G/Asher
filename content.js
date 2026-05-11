@@ -18,7 +18,8 @@ let isWorking            = false;
 let clickPerActionCount  = 0;
 let clickPerActionTarget = 0;
 let countSelect          = 0;
-
+let isOpeningComment = false;
+let watchdogInterval = null;
 // Breaker
 let breakerTimeout = null;
 const BREAKER_CONFIG = "breaker_config";
@@ -33,13 +34,119 @@ let mainObserver      = null;
 let commentObserver   = null;
 let restrictObserver  = null;
 let debounceTimer     = null;
-
+let popupOpening = false;
 // Countdown
 let countdownInterval = null;
-let version = "6.9"
+let version = "7.0"
+
+function hasOpenPopup() {
+
+  return !!document.querySelector(
+    'div[data-testid="notes-root"]'
+  );
+
+}
+
+async function waitUntilPopupClosed(max = 5000) {
+
+  const start = Date.now();
+
+  while (hasOpenPopup()) {
+
+    if (Date.now() - start > max) {
+
+      console.log("⚠️ Popup close timeout");
+
+      break;
+    }
+
+    await wait(200);
+  }
+
+}
 
 
+async function waitUntilCommentSent(max = 10000) {
 
+  const start = Date.now();
+
+  while (true) {
+
+    // textarea
+    const textarea =
+      document.querySelector(
+        'textarea[aria-label="Reply"]'
+      );
+
+    // send button
+    const sendBtn =
+      document.querySelector(
+        'button[data-testid="reply-button"]'
+      );
+
+    // if textarea cleared
+    if (
+      textarea &&
+      textarea.value.trim() === ""
+    ) {
+
+      console.log("✅ Comment sent detected");
+
+      return true;
+    }
+
+    // button disabled
+    if (
+      sendBtn &&
+      (
+        sendBtn.disabled ||
+        sendBtn.getAttribute("aria-disabled") === "true"
+      )
+    ) {
+
+      console.log("✅ Send processing");
+
+      return true;
+    }
+
+    // timeout
+    if (Date.now() - start > max) {
+
+      console.log("⚠️ Send timeout");
+
+      return false;
+    }
+
+    await wait(300);
+  }
+
+}
+
+function startFlowWatchdog() {
+  if (watchdogInterval) {
+    clearInterval(watchdogInterval);
+  }
+  watchdogInterval = setInterval(() => {
+
+    // stuck detector
+    if (
+      isOpeningComment &&
+      !document.querySelector('div[data-testid="notes-root"]')
+    ) {
+
+      console.log("⚠️ Watchdog reset triggered");
+
+      clickonce         = false;
+      isProceeding      = false;
+      isWorking         = false;
+      isOpeningComment  = false;
+
+    }
+
+  }, 5000);
+
+}
+startFlowWatchdog();
 
 // ========================
 // WEB WORKER TIMER (background-safe)
@@ -251,6 +358,31 @@ function generateID(length = 15) {
   return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
+function safeClick(el) {
+
+  if (!el) return false;
+
+  try {
+
+    el.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      })
+    );
+
+    return true;
+
+  } catch (e) {
+
+    console.log("❌ Click failed", e);
+
+    return false;
+  }
+
+}
+
 function timerConverter_mil({ status, timer }) {
   const map = { hrs: 3600000, mins: 60000, sec: 1000 };
   return (map[status] || 0) * Number(timer);
@@ -384,7 +516,7 @@ function waitForCommentBox(callback) {
       callback(el);
       return;
     }
-    if (++tries > 50) {
+    if (++tries > 20) {
       clearInterval(interval);
       clickonce    = false;
       isProceeding = false;
@@ -420,7 +552,7 @@ if (restrictEl && restrictEl.innerText.trim() !== "") {
     setTimeout(() => {
       console.log(`💬 Messages loaded: ${message.length}`);
       callback(message);
-    }, 1200);
+    }, 200);
 
   }, 400);
 }
@@ -451,71 +583,106 @@ function findCommentButton(entry) {
   return null;
 }
 
-function delayOppner(delaySec) {
+async function delayOppner(delaySec) {
+
+  // HARD BLOCK
+  if (popupOpening) {
+
+    console.log("🚫 Popup already opening");
+
+    return;
+  }
+
+  popupOpening = true;
 
   // close old popup first
-  $("[owl_clsoe_com]").click();
+  safeClick($("[owl_clsoe_com]")[0]);
+
+  // IMPORTANT WAIT
+  await waitUntilPopupClosed();
 
   message = [];
 
-  setTimeout(() => {
+  await wait(delaySec * 1000);
 
-    const entry = owl_data[countSelect];
+  const entry = owl_data[countSelect];
 
-    if (!entry) {
+  if (!entry) {
 
-      console.log("⚠️ No entry found");
+    console.log("⚠️ No entry found");
 
-      clickonce    = false;
-      isProceeding = false;
-      isWorking    = false;
+    popupOpening      = false;
+    clickonce         = false;
+    isProceeding      = false;
+    isWorking         = false;
+    isOpeningComment  = false;
+
+    return;
+  }
+
+  try {
+
+    const btn = findCommentButton(entry);
+
+    if (!btn) {
+
+      console.log("⚠️ No comment button");
+
+      popupOpening      = false;
+      clickonce         = false;
+      isProceeding      = false;
+      isWorking         = false;
+      isOpeningComment  = false;
+
+      countSelect++;
+
+      triggerNext("skip no button");
 
       return;
     }
 
-    try {
+    // already opening protection
+    if (btn.dataset.opened === "1") {
 
-      const btn = findCommentButton(entry);
+      console.log("🚫 Already opened");
 
-      if (!btn) {
+      popupOpening = false;
 
-        console.log("⚠️ No comment button");
-
-        clickonce    = false;
-        isProceeding = false;
-        isWorking    = false;
-
-        countSelect++;
-
-        setTimeout(() => {
-          triggerNext("skip no button");
-        }, 1500);
-
-        return;
-      }
-
-      console.log(`✅ Opening comment index ${countSelect}`);
-
-      btn.click();
-
-      countSelect++;
-
-    } catch (e) {
-
-      console.log("❌ Open error", e);
-
-      clickonce    = false;
-      isProceeding = false;
-      isWorking    = false;
-
-      countSelect++;
-
-      setTimeout(() => {
-        triggerNext("open error");
-      }, 1500);
+      return;
     }
 
-  }, delaySec * 1000);
+    btn.dataset.opened = "1";
+
+    setTimeout(() => {
+      delete btn.dataset.opened;
+    }, 3000);
+
+    console.log(`✅ Opening comment index ${countSelect}`);
+
+    safeClick(btn);
+
+    countSelect++;
+
+    // WAIT popup appear
+    await wait(1000);
+
+    popupOpening = false;
+
+  } catch (e) {
+
+    console.log("❌ Open error", e);
+
+    popupOpening      = false;
+    clickonce         = false;
+    isProceeding      = false;
+    isWorking         = false;
+    isOpeningComment  = false;
+
+    countSelect++;
+
+    triggerNext("open error");
+  }
+
 }
 
 
@@ -550,7 +717,7 @@ function startRestrictObserver() {
     if (el && el.innerText.trim() !== "") {
       console.log("🚫 Restricted detected — fast skip");
       isRestricted = true;
-      $("[owl_clsoe_com]").click();
+      safeClick($("[owl_clsoe_com]")[0]);
       if (commentObserver) { commentObserver.disconnect(); commentObserver = null; }
       clickonce    = false;
       isProceeding = false;
@@ -576,68 +743,71 @@ function startRestrictObserver() {
 // ========================
 function triggerNext(reason = "") {
 
-  console.log(`➡️ triggerNext: ${reason}`);
+    console.log(`➡️ triggerNext: ${reason}`);
 
-  // completed all
-  if (
-    clickPerActionTarget > 0 &&
-    clickPerActionCount >= clickPerActionTarget
-  ) {
-
-    console.log(`✅ Finished all posts`);
-
-    clickonce    = false;
-    isProceeding = false;
-    isWorking    = false;
-
-    setTimeout(() => {
-
-      breakerRunner();
-
-    }, 1000);
-
-    return;
-  }
-
-  // protection
-  if (
-    clickonce ||
-    isProceeding ||
-    isWorking
-  ) {
-
-    console.log("⛔ Blocked duplicate trigger");
-
-    return;
-  }
-
-  isProceeding = true;
-
-  console.log(
-    `🚀 Starting ${clickPerActionCount + 1}/${clickPerActionTarget}`
-  );
-
-  setTimeout(() => {
-
-    // double safety
+    // protection
     if (
-      clickPerActionCount >= clickPerActionTarget
+      isProceeding ||
+      popupOpening
     ) {
 
-      isProceeding = false;
-      isWorking    = false;
-      clickonce    = false;
+      console.log("⛔ Blocked duplicate trigger");
 
       return;
     }
 
-    isProceeding = false;
-    isWorking    = true;
-    clickonce    = true;
+    // completed all
+    if (
+      clickPerActionTarget > 0 &&
+      clickPerActionCount >= clickPerActionTarget
+    ) {
 
-    $("[openthis]").click();
+      console.log(`✅ Finished all posts`);
 
-  }, 900);
+      clickonce         = false;
+      isProceeding      = false;
+      isWorking         = false;
+      isOpeningComment  = false;
+
+      setTimeout(() => {
+
+        breakerRunner();
+
+      }, 1000);
+
+      return;
+    }
+
+    isProceeding = true;
+
+    console.log(
+      `🚀 Starting ${clickPerActionCount + 1}/${clickPerActionTarget}`
+    );
+
+    setTimeout(() => {
+
+      // double safety
+      if (
+        clickPerActionCount >= clickPerActionTarget
+      ) {
+
+        isProceeding      = false;
+        isWorking         = false;
+        clickonce         = false;
+        isOpeningComment  = false;
+
+        return;
+      }
+
+      isProceeding      = false;
+      isWorking         = true;
+      clickonce         = true;
+      isOpeningComment  = true;
+
+      safeClick($("[openthis]")[0]);
+
+    }, 300);
+
 }
 
 
@@ -660,6 +830,11 @@ function fullStop() {
   clickonce            = false;
   sent_once            = false;
   countSelect          = 0;
+
+  if (watchdogInterval) {
+    clearInterval(watchdogInterval);
+    watchdogInterval = null;
+  }
   if (breakerTimeout) { clearTimeout(breakerTimeout); breakerTimeout = null; }
   if (restrictObserver) { restrictObserver.disconnect(); restrictObserver = null; }
 
@@ -675,19 +850,29 @@ function fullStop() {
 // ========================
 $(document)
 .off("click", "[openthis]")
-.on("click", "[openthis]", function () {
+.on("click", "[openthis]", async function () {
+
+  // hard lock
+  if (isOpeningComment === false) {
+
+    console.log("⛔ Opening blocked");
+
+    return;
+  }
 
   // safety block
   if (!isWorking || !clickonce) {
 
     console.log("⛔ Invalid state open blocked");
 
+    isOpeningComment = false;
+
     return;
   }
 
   console.log("🚀 Opening popup");
 
-  delayOppner(2);
+  await delayOppner(1)
 
   startRestrictObserver();
 
@@ -702,7 +887,7 @@ $(document)
 
           console.log("🚫 Restricted");
 
-          $("[owl_clsoe_com]").click();
+          safeClick($("[owl_clsoe_com]")[0]);
 
           if (commentObserver) {
             commentObserver.disconnect();
@@ -716,13 +901,14 @@ $(document)
 
           setTimeout(() => {
 
-            clickonce    = false;
-            isProceeding = false;
-            isWorking    = false;
+            clickonce         = false;
+            isProceeding      = false;
+            isWorking         = false;
+            isOpeningComment  = false;
 
             triggerNext("restricted");
 
-          }, 1200);
+          }, 300);
 
           return;
         }
@@ -736,17 +922,17 @@ $(document)
            .toLowerCase()
         );
 
-        const isDuplicate = msg.some(x =>
-          myComments.includes(
-            x.comment.trim().toLowerCase()
-          )
+        const existing = new Set(
+          msg.map(x => x.comment.trim().toLowerCase())
         );
+
+        const isDuplicate = myComments.some(c => existing.has(c));
 
         if (isDuplicate) {
 
           console.log("🔄 Duplicate found");
 
-          $("[owl_clsoe_com]").click();
+          safeClick($("[owl_clsoe_com]")[0]);
 
           if (commentObserver) {
             commentObserver.disconnect();
@@ -760,13 +946,14 @@ $(document)
 
           setTimeout(() => {
 
-            clickonce    = false;
-            isProceeding = false;
-            isWorking    = false;
+            clickonce         = false;
+            isProceeding      = false;
+            isWorking         = false;
+            isOpeningComment  = false;
 
             triggerNext("duplicate");
 
-          }, 1200);
+          }, 300);
 
           return;
         }
@@ -783,67 +970,90 @@ $(document)
           box,
           freshComment
         );
+        (async () => {
 
-        setTimeout(() => {
-
-          // send
+          // SEND
           if (!sent_once) {
-
+        
             sent_once = true;
-
-            $("[owl_sent]").click();
-
-            setTimeout(() => {
-              sent_once = false;
-            }, 1000);
+        
+            const sendBtn = $("[owl_sent]")[0];
+        
+            if (sendBtn) {
+        
+              // human-like pause
+              await wait(500);
+        
+              safeClick(sendBtn);
+        
+              console.log("📨 Send clicked");
+        
+              // wait para ma process sa IG
+              await wait(2000);
+        
+            }
+        
+            sent_once = false;
           }
-
+        
+          // SUCCESS COUNT
           clickPerActionCount++;
-
+        
           const remaining =
             clickPerActionTarget -
             clickPerActionCount;
-
+        
           $('[manypost_remaining]').val(
             remaining >= 0 ? remaining : 0
           );
-
+        
           console.log(
             `✅ Success ${clickPerActionCount}/${clickPerActionTarget}`
           );
-
-          // cleanup observers
+        
+          // CLEANUP OBSERVERS
           if (commentObserver) {
+        
             commentObserver.disconnect();
+        
             commentObserver = null;
           }
-
+        
           if (restrictObserver) {
+        
             restrictObserver.disconnect();
+        
             restrictObserver = null;
           }
-
-          // close popup first
-          $("[owl_clsoe_com]").click();
-
-          // IMPORTANT DELAY
-          setTimeout(() => {
-
-            clickonce    = false;
-            isProceeding = false;
-            isWorking    = false;
-
-            triggerNext("success");
-
-          }, 1500);
-
-        }, 1000);
+        
+          // CLOSE POPUP
+          const closeBtn = $("[owl_clsoe_com]")[0];
+        
+          if (closeBtn) {
+        
+            safeClick(closeBtn);
+        
+            // wait close animation
+            await wait(1200);
+          }
+        
+          // RESET STATES
+          clickonce         = false;
+          isProceeding      = false;
+          isWorking         = false;
+          isOpeningComment  = false;
+          popupOpening      = false;
+        
+          // NEXT
+          triggerNext("success");
+        
+        })();
 
       }, () => {
 
         console.log("⌛ Timeout");
 
-        $("[owl_clsoe_com]").click();
+        safeClick($("[owl_clsoe_com]")[0]);
 
         if (commentObserver) {
           commentObserver.disconnect();
@@ -857,13 +1067,14 @@ $(document)
 
         setTimeout(() => {
 
-          clickonce    = false;
-          isProceeding = false;
-          isWorking    = false;
+          clickonce         = false;
+          isProceeding      = false;
+          isWorking         = false;
+          isOpeningComment  = false;
 
           triggerNext("timeout");
 
-        }, 1500);
+        }, 300);
 
       });
 
@@ -873,9 +1084,10 @@ $(document)
 
     console.log("❌ FLOW ERROR", e);
 
-    clickonce    = false;
-    isProceeding = false;
-    isWorking    = false;
+    clickonce         = false;
+    isProceeding      = false;
+    isWorking         = false;
+    isOpeningComment  = false;
   }
 
 });
