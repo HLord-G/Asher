@@ -37,7 +37,7 @@ let debounceTimer     = null;
 let popupOpening = false;
 // Countdown
 let countdownInterval = null;
-let version = "7.1"
+let version = "7.0"
 
 function hasOpenPopup() {
 
@@ -2931,32 +2931,6 @@ function waitForElement(selector, root, timeout) {
     }, timeout);
   });
 }
-
-
-function closePopupIfExist() {
-
-  // pangitaon ang dismiss button sulod sa popup
-  const popupBtn = document.querySelector(
-    '.vgL3J.l98yg.kjjAF button[aria-label="Dismiss"]'
-  );
-
-  // if naa siya, e-click dayun
-  if (popupBtn) {
-
-    console.log("Popup detected, closing...");
-
-    popupBtn.click();
-
-    return true;
-
-  } else {
-
-    console.log("No popup found.");
-
-    return false;
-  }
-}
-
 /* ======================================= [E] **** [E] ======================================= */
 
 
@@ -3447,14 +3421,13 @@ const keepOpen = keepConversationOpen();
 // START BUTTON
 document.querySelector('#tsStartBtn')?.addEventListener('click', () => {
 
-  closePopupIfExist();
-
   if (!startonce) {
     startonce = true
     keepOpen.start();
     // $("#menuBtn").click()
     $("#tsStartBtn").text(`⏯`)
     setLocalLogic("autoRunnerMsg", true);
+
 
     // $("[mainBox]").hide()
     // offRefreshStatus()
