@@ -466,8 +466,8 @@ function startObserving() {
         $('textarea[aria-label="Reply"]').attr('owl_comment', '');
       if (!$('button[data-testid="reply-button"]').attr('owl_sent'))
         $('button[data-testid="reply-button"]').attr('owl_sent', '');
-      if (!$('button[class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined"]').attr('owl_clsoe_com'))
-        $('button[class="VmbqY r21y5 Li_00 zn53i KmpWV EF4A5 undefined"]').attr('owl_clsoe_com', '');
+      if (!$('button[class="qf5_7 j4_3O u1icf wEQXZ rZNeu GqZGX undefined"]').attr('owl_clsoe_com'))
+        $('button[class="qf5_7 j4_3O u1icf wEQXZ rZNeu GqZGX undefined"]').attr('owl_clsoe_com', '');
       if (!$(`div[aria-label="Reply restricted"]`).attr('sirado'))
         $(`div[aria-label="Reply restricted"]`).attr('sirado', '');
 
