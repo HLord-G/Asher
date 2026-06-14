@@ -37,7 +37,7 @@ let debounceTimer     = null;
 let popupOpening = false;
 // Countdown
 let countdownInterval = null;
-let version = "7.1"
+let version = "7.3"
 
 function hasOpenPopup() {
 
@@ -551,8 +551,8 @@ if (restrictEl && restrictEl.innerText.trim() !== "") {
     clearInterval(interval);
     setTimeout(() => {
       console.log(`💬 Messages loaded: ${message.length}`);
-      callback(message);
-    }, 200);
+      callback([...message]);
+    }, 1500);
 
   }, 400);
 }
@@ -664,7 +664,7 @@ async function delayOppner(delaySec) {
     countSelect++;
 
     // WAIT popup appear
-    await wait(1000);
+    await wait(3000);
 
     popupOpening = false;
 
@@ -913,56 +913,67 @@ $(document)
           return;
         }
 
+        // start here  ===============[update]
         // duplicate checker
-        const myComments = (
+        // get all comments
+        const allComments = (
           $('[comments]').val().match(/\[(.*?)\]/g) || []
         ).map(x =>
           x.replace(/[\[\]]/g, '')
-           .trim()
-           .toLowerCase()
+          .trim()
         );
 
-        const existing = new Set(
-          msg.map(x => x.comment.trim().toLowerCase())
-        );
+      // existing comments on post
+      const existing = new Set(
+        msg.map(x =>
+          x.comment.trim().toLowerCase()
+        )
+      );
 
-        const isDuplicate = myComments.some(c => existing.has(c));
+      // check if ANY configured comment already exists
+      const hasDuplicate = allComments.some(
+        c => existing.has(c.toLowerCase())
+      );
 
-        if (isDuplicate) {
+      if (hasDuplicate) {
 
-          console.log("🔄 Duplicate found");
+        console.log("🔄 Duplicate found - Skip");
 
-          safeClick($("[owl_clsoe_com]")[0]);
+        safeClick($("[owl_clsoe_com]")[0]);
 
-          if (commentObserver) {
-            commentObserver.disconnect();
-            commentObserver = null;
-          }
-
-          if (restrictObserver) {
-            restrictObserver.disconnect();
-            restrictObserver = null;
-          }
-
-          setTimeout(() => {
-
-            clickonce         = false;
-            isProceeding      = false;
-            isWorking         = false;
-            isOpeningComment  = false;
-
-            triggerNext("duplicate");
-
-          }, 300);
-
-          return;
+        if (commentObserver) {
+          commentObserver.disconnect();
+          commentObserver = null;
         }
 
-        // type comment
+        if (restrictObserver) {
+          restrictObserver.disconnect();
+          restrictObserver = null;
+        }
+
+        setTimeout(() => {
+
+          clickonce         = false;
+          isProceeding      = false;
+          isWorking         = false;
+          isOpeningComment  = false;
+
+          triggerNext("duplicate");
+
+        }, 300);
+
+        return;
+      }
+
+        // random comment nga wala pa sa post
         const freshComment =
-          getRandomComment(
-            $('[comments]').val()
-          );
+          allComments[
+            Math.floor(
+              Math.random() *
+              allComments.length
+            )
+          ];
+        // End here  ===============[update]
 
         console.log("✏️ Typing:", freshComment);
 
@@ -982,14 +993,16 @@ $(document)
             if (sendBtn) {
         
               // human-like pause
-              await wait(500);
+              // await wait(500);
+              await wait(1500);
         
               safeClick(sendBtn);
         
               console.log("📨 Send clicked");
         
               // wait para ma process sa IG
-              await wait(2000);
+              // await wait(2000);
+              await wait(4000);
         
             }
         

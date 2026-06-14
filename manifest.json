@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Asher",
-    "version": "7.1",
+    "version": "7.3",
     "description": "Simple Chrome extension with content script",
     "author": "Lordskey",
   
