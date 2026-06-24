@@ -3468,6 +3468,7 @@ async function othertest(){
 
 if(url.includes("dashboard")){
   injectUI();
+  persistentInput("userx_whatsup");
   persistentInput("userx");
   persistentInput("timerr");
   persistentInput("firstmsg");
