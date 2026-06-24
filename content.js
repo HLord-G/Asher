@@ -1635,13 +1635,31 @@ function injectUI() {
     width:90%;
   `;
 
+
+  
+    const userx_whatsup = document.createElement('input');
+  userx_whatsup.id = 'userx_whatsup';
+  // userx.innerText = 'Bot Setup';
+  userx_whatsup.style.cssText = `
+    padding:10px 12px;
+    margin-bottom:40px;
+    cursor:pointer;
+    color:#1d1d1d;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    font-size:12px;
+    width:79%;
+    outline:0;
+  `;
+
   
   const userx = document.createElement('input');
   userx.id = 'userx';
   // userx.innerText = 'Bot Setup';
   userx.style.cssText = `
     padding:10px 12px;
-    margin-bottom:40px;
+    margin-bottom:6px;
     cursor:pointer;
     color:#1d1d1d;
     border:none;
@@ -1712,7 +1730,7 @@ function injectUI() {
 
   
  
-
+  target.prepend(userx_whatsup);
   target.prepend(userx);
 
   wrapper.appendChild(startBtn);
