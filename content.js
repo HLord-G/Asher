@@ -2754,7 +2754,7 @@ async function setMessage(message = "") {
 /* ======================================= [S] **** [S] ======================================= */
 // GENERATE IMAGE
 /*==============================================================================================*/
-function imgGen(username, img, userx) {
+ function imgGen(username, img, userx, whatthePack) {
   return new Promise((resolve) => {
 
     const canvas = document.createElement("canvas");
@@ -2821,6 +2821,12 @@ function imgGen(username, img, userx) {
         ctx.font = `bold ${50* scaleX}px Segoe UI`;
         ctx.textAlign = "center";
         ctx.fillText(userx, 380 * scaleX, 1999 * scaleY);
+
+        // para sa whats_app
+        ctx.fillStyle = "white";
+        ctx.font = `bold ${25* scaleX}px Segoe UI`;
+        ctx.textAlign = "center";
+        ctx.fillText(whatthePack, 710 * scaleX, 1988 * scaleY);
  
         resolve(canvas.toDataURL("image/jpeg", 0.8));
       };
@@ -3285,7 +3291,8 @@ async function checkBeforeSent() {
       const base64 = await imgGen(
         `@${activeUsername}`,
         thedataholder.img,
-        document.getElementById('userx')?.value || ''
+        document.getElementById('userx')?.value || '',
+        document.getElementById('userx_whatsup')?.value || ''
       );
 
       // SEND IMAGE
