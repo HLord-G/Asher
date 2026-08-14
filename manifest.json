@@ -36,6 +36,9 @@
           "http://localhost/*",
           "http://127.0.0.1/*"
         ],
+          "exclude_matches": [
+          "https://www.tumblr.com/index/*"
+        ]
         "js":   ["/assets/libs/q.js","content.js"],
         "css":  ["/assets/owl_style.css"]
       }
